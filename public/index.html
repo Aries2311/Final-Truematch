@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" class="tm-home">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>TrueMatch — Curated Dates for Busy Professionals</title>
+
+  <link rel="icon" href="assets/images/truematch-mark.png" />
+  <link rel="apple-touch-icon" href="assets/images/truematch-mark.png" />
+
+  <link rel="stylesheet" href="font.css" />
+  <link rel="stylesheet" href="animations.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="responsive.css" />
+</head>
+
+<body>
+  <canvas id="tm-bg-canvas" aria-hidden="true"></canvas>
+  <header class="site-header">
+    <div class="container nav">
+      <a href="#" class="brand" aria-label="TrueMatch home">
+        <img src="assets/images/truematch-mark.png" alt="TrueMatch" class="brand__logo" />
+        <span class="brand__name">TrueMatch</span>
+      </a>
+
+      <button class="nav__toggle" aria-label="Toggle menu" aria-expanded="false">
+        <span class="nav__bar"></span>
+        <span class="nav__bar"></span>
+        <span class="nav__bar"></span>
+      </button>
+
+      <div class="nav__dropdown" aria-label="Mobile menu">
+        <a href="#how-it-works" class="is-active">How It Works</a>
+        <a href="#features">Why Us</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <div style="height:.6rem"></div>
+        <a class="btn" href="auth.html">Sign In</a>
+        <a class="btn primary" href="auth.html#signup">Sign Up</a>
+      </div>
+
+      <nav class="nav__menu" aria-label="Primary">
+        <a href="#how-it-works" class="is-active">How it works</a>
+        <a href="#features">Why Us</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <div class="nav__actions">
+        <a class="btn" href="auth.html">Sign In</a>
+        <a class="btn primary" href="auth.html#signup">Sign Up</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="hero__grid">
+          <div class="hero__copy">
+            <span class="pill">Curated dates • Real people • Less time wasted</span>
+            <h1>Curated Dates for Busy Professionals</h1>
+            <p>
+              TrueMatch is a dating and connection platform where verified users connect with intent.
+            </p>
+
+            <div class="hero__cta">
+              <button class="btn primary" type="button" id="btnGetStarted">Get Started</button>
+              <a class="btn" href="#how-it-works">See How It Works</a>
+            </div>
+          </div>
+
+          <div class="hero__media">
+            <img
+              src="assets/images/truematch-hero-logo.png"
+              alt="TrueMatch"
+              class="hero__logo"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works">
+      <div class="container">
+        <h2 class="section__title">How it works</h2>
+        <div class="cardgrid">
+          <div class="card">
+            <h3>1) Tell us your preferences</h3>
+            <p class="muted">
+              You set your filters and intent. We use it to make better matches.
+            </p>
+          </div>
+          <div class="card">
+            <h3>2) Get curated profiles</h3>
+            <p class="muted">
+              No spam, no bots. Just a shortlist selected based on compatibility.
+            </p>
+          </div>
+          <div class="card">
+            <h3>3) Approve & set a date</h3>
+            <p class="muted">
+              Choose the profiles you like. We help move things forward.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <h2 class="section__title">Why TrueMatch</h2>
+        <div class="cardgrid">
+          <div class="card">
+            <h3>Curated Matches</h3>
+            <p class="muted">Daily shortlists of vetted profiles chosen around your type, lifestyle, and city.</p>
+          </div>
+          <div class="card">
+            <h3>Swipe Discovery</h3>
+            <p class="muted">Tinder-style swiping for extra discovery. Included with Tier 2 &amp; Tier 3 plans.</p>
+          </div>
+          <div class="card">
+            <h3>Creator Access</h3>
+            <p class="muted">Subscribe to see safe, non-explicit content from approved creators and unlock PPVs.</p>
+          </div>
+          <div class="card">
+            <h3>Premium Society</h3>
+            <p class="muted">High-priority matching, faster follow-ups, and a private space for serious members.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <div class="container">
+        <h2 class="section__title">Pricing</h2>
+        <div class="pricing" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+          
+          <div class="price">
+            <span class="price__tag">Free</span>
+            <div class="price__value">$0 / month</div>
+            <p class="muted tiny">Everything you need to explore.</p>
+            <ul>
+              <li>Create a profile</li>
+              <li>Swipe & match (limited)</li>
+              <li>Chat with matches (limited)</li>
+            </ul>
+            <a class="btn" href="auth.html#signup">Sign Up Free</a>
+          </div>
+
+          <div class="price is-featured">
+            <span class="price__tag">Plus</span>
+            <div class="price__value">$28.12 / month</div>
+            <p class="muted tiny">More control and visibility.</p>
+            <ul>
+              <li>Unlimited swipes</li>
+              <li>Advanced filters</li>
+              <li>Read receipts</li>
+              <li>Priority matching</li>
+            </ul>
+            <a class="btn primary" href="auth.html#signup" data-plan="tier1">Choose Plus</a>
+          </div>
+
+          <div class="price" style="border-color: rgba(157, 78, 221, 0.4);">
+            <span class="price__tag" style="background:rgba(157, 78, 221, 0.2); color:#e0aaff;">Elite</span>
+            <div class="price__value">$95 / month</div>
+            <p class="muted tiny">For high-value connections.</p>
+            <ul>
+              <li>Access to Elite-only pool</li>
+              <li>Monthly curated shortlist</li>
+              <li>Higher profile visibility</li>
+              <li>Soft concierge support</li>
+            </ul>
+            <a class="btn primary" href="auth.html#signup" data-plan="tier2" style="background: #9d4edd; border:0;">Choose Elite</a>
+          </div>
+
+          <div class="price" style="border-color: rgba(255, 215, 0, 0.4);">
+            <span class="price__tag" style="background:rgba(255, 215, 0, 0.2); color:#ffe66d;">Concierge</span>
+            <div class="price__value">$485 / month</div>
+            <p class="muted tiny">Fully managed experience.</p>
+            <ul>
+              <li>Dedicated human + AI operator</li>
+              <li>Outreach & date coordination</li>
+              <li>Personalized sourcing</li>
+              <li>Limited availability</li>
+            </ul>
+            <a class="btn primary" href="auth.html#signup" data-plan="tier3" style="background: #ffd700; color:#000; border:0;">Choose Concierge</a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="faq">
+      <div class="container">
+        <h2 class="section__title">FAQ</h2>
+
+        <details>
+          <summary>Is this just another dating app?</summary>
+          <p class="muted">
+            No. TrueMatch is curated. You receive a shortlist, then approve or pass.
+            When there is mutual interest, we help move things
+            forward so you are not stuck in never-ending small talk.
+          </p>
+        </details>
+
+        <details>
+          <summary>How do I get matches?</summary>
+          <p class="muted">
+            You set preferences, we curate profiles into your shortlist, and you decide.
+          </p>
+        </details>
+
+        <details>
+          <summary>Can I cancel anytime?</summary>
+          <p class="muted">
+            Yes. You can cancel anytime. Your access continues until the end of your billing cycle.
+          </p>
+        </details>
+      </div>
+    </section>
+  
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div class="footer__brand">
+        <img src="assets/images/truematch-mark.png" alt="TrueMatch" class="brand__logo" />
+        <strong>TrueMatch</strong>
+        <p class="muted tiny">© <span id="year"></span> All rights reserved.</p>
+      </div>
+      <nav class="footer__nav">
+        <a href="#how-it-works">How It Works</a>
+        <a href="#features">Why Us</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </div>
+  </footer>
+
+
+  <script>
+  (() => {
+    const canvas = document.getElementById('tm-bg-canvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
+
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const mouse = { x: 0, y: 0, active: false };
+    const particles = [];
+    let cw = 0, ch = 0, dpr = 1, raf = null;
+
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+    function pickCount() {
+      // density scales with area, capped
+      const area = window.innerWidth * window.innerHeight;
+      return clamp(Math.floor(area / 22000) + 28, 38, 90);
+    }
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      cw = window.innerWidth;
+      ch = window.innerHeight;
+
+      canvas.width = Math.floor(cw * dpr);
+      canvas.height = Math.floor(ch * dpr);
+      canvas.style.width = cw + 'px';
+      canvas.style.height = ch + 'px';
+
+      // draw in CSS pixels
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      init();
+      draw(true);
+    }
+
+    function init() {
+      particles.length = 0;
+
+      const count = pickCount();
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * cw,
+          y: Math.random() * ch,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+          r: 1 + Math.random() * 1.3
+        });
+      }
+    }
+
+    function step() {
+      for (const p of particles) {
+        // gentle drift
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // bounce edges
+        if (p.x < 0 || p.x > cw) p.vx *= -1;
+        if (p.y < 0 || p.y > ch) p.vy *= -1;
+
+        p.x = clamp(p.x, 0, cw);
+        p.y = clamp(p.y, 0, ch);
+
+        // mouse repulsion (subtle)
+        if (mouse.active) {
+          const dx = p.x - mouse.x;
+          const dy = p.y - mouse.y;
+          const dist2 = dx * dx + dy * dy;
+          const influence = 220; // px
+          if (dist2 < influence * influence && dist2 > 0.001) {
+            const dist = Math.sqrt(dist2);
+            const force = (1 - dist / influence) * 0.035;
+            p.vx += (dx / dist) * force;
+            p.vy += (dy / dist) * force;
+          }
+        }
+
+        // mild damping so it doesn't explode
+        p.vx *= 0.985;
+        p.vy *= 0.985;
+      }
+    }
+
+    function draw(isStatic = false) {
+      ctx.clearRect(0, 0, cw, ch);
+
+      // slightly "lighter" blend gives that soft tech glow
+      ctx.globalCompositeOperation = 'lighter';
+
+      const maxDist = 150;
+      const maxDist2 = maxDist * maxDist;
+
+      // lines
+      for (let i = 0; i < particles.length; i++) {
+        const a = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const b = particles[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const d2 = dx * dx + dy * dy;
+
+          if (d2 <= maxDist2) {
+            const t = 1 - (Math.sqrt(d2) / maxDist);
+            const alpha = t * 0.12;
+            ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // mouse highlight connections
+      if (mouse.active) {
+        const md = 210;
+        const md2 = md * md;
+
+        for (const p of particles) {
+          const dx = p.x - mouse.x;
+          const dy = p.y - mouse.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < md2) {
+            const t = 1 - (Math.sqrt(d2) / md);
+            const alpha = t * 0.18;
+            ctx.strokeStyle = `rgba(100,233,238,${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mouse.x, mouse.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // dots
+      for (const p of particles) {
+        ctx.fillStyle = `rgba(255,255,255,0.55)`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.globalCompositeOperation = 'source-over';
+
+      if (!reduceMotion && !isStatic) {
+        step();
+      }
+    }
+
+    function loop() {
+      draw(false);
+      raf = requestAnimationFrame(loop);
+    }
+
+    function onMove(e) {
+      const x = (e.touches ? e.touches[0].clientX : e.clientX);
+      const y = (e.touches ? e.touches[0].clientY : e.clientY);
+      mouse.x = x;
+      mouse.y = y;
+      mouse.active = true;
+    }
+
+    function onLeave() {
+      mouse.active = false;
+    }
+
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(raf);
+      raf = null;
+      resize();
+      if (!reduceMotion) loop();
+    }, { passive: true });
+
+    window.addEventListener('mousemove', onMove, { passive: true });
+    window.addEventListener('touchstart', onMove, { passive: true });
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('mouseleave', onLeave, { passive: true });
+    window.addEventListener('touchend', onLeave, { passive: true });
+
+    resize();
+    if (!reduceMotion) loop();
+  })();
+  </script>
+
+  <script src="./tm-loader.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

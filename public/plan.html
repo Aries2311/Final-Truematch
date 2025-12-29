@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>TrueMatch — Plan Status</title>
+
+  <link rel="icon" href="assets/images/truematch-mark.png" />
+  <link rel="apple-touch-icon" href="assets/images/truematch-mark.png" />
+  <link rel="stylesheet" href="font.css" />
+  <link rel="stylesheet" href="animations.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="responsive.css" />
+  <link rel="stylesheet" href="dashboard.css" />
+  <style>
+    .plan-wrap{ max-width:900px; margin:28px auto 60px; padding:0 16px; }
+    .plan-card{ padding:16px 18px; }
+    .plan-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:10px 16px; }
+    .plan-grid div{ display:flex; gap:8px; }
+    .label{ color:#b9c6e0; min-width:160px; }
+    @media (max-width:860px){ .plan-grid{ grid-template-columns: 1fr; } .label{ min-width:120px; } }
+  </style>
+</head>
+<body class="tm-dark">
+  <!-- Background (same constellation as index.html) -->
+  <canvas id="tm-bg-canvas" aria-hidden="true"></canvas>
+
+  <header class="appbar">
+    <div class="appbar__row">
+      <a class="brand" href="index.html">
+        <img src="assets/images/truematch-mark.png" class="brand__logo" alt="" />
+        <span class="brand__name">TrueMatch</span>
+      </a>
+      <nav class="appbar__nav">
+        <a class="tab" href="dashboard.html">Dashboard</a>
+        <a class="tab" href="tier.html?upgrade=1">Upgrade</a>
+      </nav>
+      <div class="appbar__right"></div>
+    </div>
+  </header>
+
+  <main class="plan-wrap">
+    <article class="card plan-card">
+      <h2 style="margin:.15rem 0 .6rem;">Plan status</h2>
+      <div class="plan-grid">
+        <div><span class="label">Email:</span> <span id="pEmail">—</span></div>
+        <div><span class="label">Current tier:</span> <span id="pTier">—</span></div>
+        <div><span class="label">Subscribed on:</span> <span id="pStart">—</span></div>
+        <div><span class="label">Ends on:</span> <span id="pEnd">—</span></div>
+        <div><span class="label">Status:</span> <span id="pActive">—</span></div>
+        <div><span class="label">Daily quota:</span> <span id="pQuota">—</span></div>
+      </div>
+
+      <div class="row" style="margin-top:14px">
+        <a class="btn btn--primary" href="dashboard.html">Back to Dashboard</a>
+        <a class="btn btn--ghost" href="tier.html?upgrade=1">Change / Upgrade</a>
+      </div>
+    </article>
+  </main>
+
+  <!-- Constellation background (same logic as landing page) -->
+  <script>
+    (() => {
+      const canvas = document.getElementById('tm-bg-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d', { alpha:true });
+      if (!ctx) return;
+
+      const M={x:0,y:0,a:false}, P=[]; let W=0,H=0,D=1,raf=null;
+      const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function count(){ const area=innerWidth*innerHeight; return Math.max(38, Math.min(90, Math.floor(area/22000)+28)); }
+      function resize(){
+        D=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+        canvas.width=W*D; canvas.height=H*D; canvas.style.width=W+'px'; canvas.style.height=H+'px';
+        ctx.setTransform(D,0,0,D,0,0);
+        P.length=0; const n=count();
+        for(let i=0;i<n;i++) P.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:1+Math.random()*1.3});
+        draw(true);
+      }
+      function step(){
+        for(const p of P){
+          p.x+=p.vx; p.y+=p.vy;
+          if(p.x<0||p.x>W) p.vx*=-1;
+          if(p.y<0||p.y>H) p.vy*=-1;
+          p.x=clamp(p.x,0,W); p.y=clamp(p.y,0,H);
+          if(M.a){
+            const dx=p.x-M.x,dy=p.y-M.y,d2=dx*dx+dy*dy,R=220;
+            if(d2<R*R && d2>1){ const d=Math.sqrt(d2),f=(1-d/R)*.035; p.vx+=(dx/d)*f; p.vy+=(dy/d)*f; }
+          }
+          p.vx*=0.985; p.vy*=0.985;
+        }
+      }
+      function draw(staticOnly=false){
+        ctx.clearRect(0,0,W,H); ctx.globalCompositeOperation='lighter';
+        const maxD2=150*150;
+        for(let i=0;i<P.length;i++){
+          const a=P[i];
+          for(let j=i+1;j<P.length;j++){
+            const b=P[j], dx=a.x-b.x, dy=a.y-b.y, d2=dx*dx+dy*dy;
+            if(d2<maxD2){ const t=1-d2/maxD2; ctx.globalAlpha=t*.7; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.strokeStyle='#8EBBFF'; ctx.lineWidth=0.7; ctx.stroke(); }
+          }
+        }
+        ctx.globalAlpha=1;
+        for(const p of P){ ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle='#FFFFFF'; ctx.fill(); }
+        if(!staticOnly && !prefersReduced){ step(); raf=requestAnimationFrame(draw); }
+      }
+      function onMove(e){ M.a=true; M.x=e.clientX; M.y=e.clientY; }
+      function onLeave(){ M.a=false; }
+
+      window.addEventListener('resize', resize, { passive:true });
+      window.addEventListener('mousemove', onMove, { passive:true });
+      window.addEventListener('mouseleave', onLeave, { passive:true });
+      resize();
+    })();
+  </script>
+
+  <script src="./tm-loader.js"></script>
+  <script type="module" src="plan.js"></script>
+</body>
+</html>

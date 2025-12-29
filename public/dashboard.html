@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <title>TrueMatch — Dashboard</title>
+
+  <link rel="icon" href="assets/images/truematch-mark.png" />
+  <link rel="apple-touch-icon" href="assets/images/truematch-mark.png" />
+  <link rel="stylesheet" href="font.css" />
+  <link rel="stylesheet" href="animations.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="responsive.css" />
+  <link rel="stylesheet" href="dashboard.css" />
+
+  <style>
+    /* Ensure only landing canvas is visible and behind everything */
+    html::before, html::after, body::after { display:none !important; content:none !important; }
+
+    #tm-bg-canvas{
+      position:fixed; inset:0; width:100vw; height:100vh;
+      pointer-events:none; z-index:0; opacity:.95; transform:translateZ(0);
+    }
+    body > :not(#tm-bg-canvas){ position:relative; z-index:1; }
+
+    /* Dialog fixes */
+    dialog[open] { display: block; }
+
+    /* Matches Grid Styles (Inline for now) */
+    .matches-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 16px;
+      padding-bottom: 40px;
+    }
+    .match-card {
+      background: #18181b;
+      border: 1px solid #333;
+      border-radius: 12px;
+      overflow: hidden;
+      text-align: center;
+    }
+    .match-img {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+    }
+    .match-info {
+      padding: 12px;
+    }
+    .match-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    /* --- NEW STORIES / MATCHES UI --- */
+    .stories-scroll {
+      display: flex;
+      gap: 1.25rem;
+      overflow-x: auto;
+      padding: 0.5rem 0.25rem 1rem;
+      scrollbar-width: none; /* Hide scrollbar Firefox */
+      -ms-overflow-style: none; /* Hide scrollbar IE */
+      mask-image: linear-gradient(to right, black 85%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    }
+    .stories-scroll::-webkit-scrollbar { display: none; }
+    
+    .story-item {
+      display: flex; flex-direction: column; align-items: center;
+      min-width: 72px; cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .story-item:hover { transform: translateY(-5px); }
+    
+    .story-ring {
+      width: 64px; height: 64px; border-radius: 50%; padding: 2px;
+      /* Pink Gradient Ring */
+      background: linear-gradient(45deg, #FF3366, #FF5C8D, #fcd34d);
+      position: relative; margin-bottom: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    
+    .story-img {
+      width: 100%; height: 100%; border-radius: 50%;
+      border: 2px solid #18181b; /* Match card background */
+      background-color: #333; background-size: cover; background-position: center;
+    }
+    
+    .story-item.action .story-ring {
+      background: transparent; border: 2px dashed rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      color: #FF3366; 
+    }
+    .story-item.action:hover .story-ring { border-color: #FF3366; background: rgba(255, 51, 102, 0.1); }
+    
+    .story-name { font-size: 0.75rem; font-weight: 500; color: #e4e4e7; text-align: center; white-space: nowrap; }
+  </style>
+</head>
+
+<body data-auth="anon" class="tm-dark">
+  <canvas id="tm-bg-canvas" aria-hidden="true"></canvas>
+
+  <header class="appbar" id="appbar">
+    <div class="appbar__row">
+      <a class="brand" id="brandDashboard" href="dashboard.html">
+        <img src="assets/images/truematch-mark.png" class="brand__logo" alt="" />
+        <span class="brand__name">TrueMatch</span>
+      </a>
+
+      <nav class="appbar__nav" id="tabbar">
+        <button class="tab is-active" data-panel="home" type="button">Home</button>
+        <button class="tab" data-panel="matches" type="button">Matches</button>
+        <button class="tab" data-panel="shortlist" type="button">Shortlist</button>
+        <button class="tab" data-panel="approved" type="button">Approved</button>
+        <button class="tab" data-panel="confirmed" id="tab-confirmed" type="button">Dates</button>
+        <button class="tab" data-panel="swipe" type="button">Swipe</button>
+        <button class="tab" data-panel="creators" type="button">Creators</button>
+        <button class="tab" data-panel="premium" type="button">Premium</button>
+        <button class="tab" data-panel="settings" type="button">Settings</button>
+      </nav>
+
+      <div class="appbar__right">
+        <button id="btn-logout" class="btn btn--ghost" type="button">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dash">
+    <section class="content">
+      <div class="panels">
+        
+        <section class="panel is-active" id="panel-home" data-panel="home">
+          <div class="home-grid">
+            <div class="home-col">
+              <article class="card home-card" id="homeWelcomeCard">
+                <div class="home-card-header">
+                  <div>
+                    <p class="muted tiny" id="homeWelcomeLabel">Welcome back</p>
+                    <h3 id="homeWelcomeName">Member</h3>
+                  </div>
+                  <div class="pill-plan" id="homePlanPill">Free plan</div>
+                </div>
+                <p class="muted tiny" id="homePlanSummary">
+                  Use your daily swipes and keep your preferences updated for better matches.
+                </p>
+              </article>
+
+              <article class="card home-card" id="homeTodayCard">
+                <div class="home-card-header" style="justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <h3 style="margin:0;">Latest Matches</h3>
+                  <button class="btn btn--sm btn--ghost" onclick="document.querySelector('[data-panel=matches]').click()" style="padding: 4px 8px; font-size: 0.75rem;">View All</button>
+                </div>
+                
+                <div class="stories-scroll" id="storiesContainer">
+                  
+                  <div class="story-item action" onclick="document.querySelector('[data-panel=swipe]').click()">
+                    <div class="story-ring">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </div>
+                    <span class="story-name" style="color:#FF3366;">Swipe</span>
+                  </div>
+
+                  </div>
+              </article>
+            </div>
+
+            <div class="home-col">
+              <article class="card home-card" id="homeAccountCard">
+                <div class="home-card-header">
+                  <h3>Account &amp; plan status</h3>
+                </div>
+                <div id="homeAccountList"></div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-matches" data-panel="matches" hidden>
+          <header class="panel__header">
+            <h2>Your Matches</h2>
+            <p class="muted">People you liked who liked you back.</p>
+          </header>
+          <div class="panel__body">
+             <div id="matchesContainer" class="matches-grid">
+               <div class="swipe-empty" style="grid-column: 1/-1;">
+                 <div class="swipe-empty__icon">💞</div>
+                 <h3>No matches yet</h3>
+                 <p class="muted">Start swiping to find your match!</p>
+                 <button class="btn btn--primary" onclick="document.querySelector('[data-panel=swipe]').click()">Go to Swipe</button>
+               </div>
+             </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-shortlist" data-panel="shortlist" hidden>
+          <header class="panel__header">
+            <h2>Your Shortlist</h2>
+            <p class="muted">Curated daily matches based on your preferences.</p>
+          </header>
+          <div class="panel__body">
+             <div class="swipe-empty">
+               <div class="swipe-empty__icon">📋</div>
+               <h3>Daily Shortlist</h3>
+               <p class="muted">Content will appear here for Elite and Concierge members.</p>
+             </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-approved" data-panel="approved" hidden>
+          <header class="panel__header">
+             <h2>Approved Matches</h2>
+          </header>
+          <div class="panel__body">
+             <div class="swipe-empty">
+               <div class="swipe-empty__icon">✅</div>
+               <h3>No approvals yet</h3>
+               <p class="muted">Matches you approve will be listed here.</p>
+             </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-confirmed" data-panel="confirmed" hidden>
+          <header class="panel__header">
+             <h2>Dates & Schedule</h2>
+          </header>
+          <div class="panel__body">
+             <div class="swipe-empty">
+               <div class="swipe-empty__icon">📅</div>
+               <h3>No dates scheduled</h3>
+               <p class="muted">Your concierge team will populate this.</p>
+             </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-swipe" data-panel="swipe" hidden>
+          <div class="swipe-layout">
+            <div class="swipe-empty" id="swipeEmpty" hidden>
+              <div class="swipe-empty__icon">✨</div>
+              <h3>That's everyone for now!</h3>
+              <p class="muted">Check back later for more profiles or adjust your preferences.</p>
+              <button class="btn btn--primary" id="btnRefreshSwipe">Refresh Profiles</button>
+            </div>
+
+            <div class="swipe-stack" id="swipeStack"></div>
+
+            <div class="swipe-controls" id="swipeControls">
+  <button id="btnSwipePass" class="btn-circle btn-pass" aria-label="Pass">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+  </button>
+
+  <button id="btnSwipeLike" class="btn-circle btn-like" aria-label="Like">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+  </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-creators" data-panel="creators" hidden>
+          <header class="panel__header">
+            <div>
+              <h2>Creators</h2>
+              <p class="muted">OnlyFans-style feature inside TrueMatch. Content lives in private chats.</p>
+            </div>
+          </header>
+          <div class="panel__body">
+            
+            <section class="creator-apply">
+              <h3>Become a creator</h3>
+              
+              <div id="creatorStateNone">
+                <p class="muted tiny">Apply to publish content and earn with your audience.</p>
+                <button type="button" class="btn secondary" id="btnOpenCreatorApply">Apply to be a creator</button>
+              </div>
+
+              <div id="creatorStatePending" hidden style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px; margin-top:10px;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+                  <span style="font-size:18px;">⏳</span>
+                  <h4 style="margin:0; font-size:14px;">Application Under Review</h4>
+                </div>
+                <p class="muted tiny" style="margin:0;">
+                  We are currently reviewing your profile. Verification usually takes 24-48 hours.
+                </p>
+              </div>
+
+              <div id="creatorStateApproved" hidden>
+                <p class="muted tiny">You are a verified creator.</p>
+                <button class="btn btn--primary" onclick="window.location.href='creators.html'">
+                  Go to Creator Studio
+                </button>
+              </div>
+            </section>
+
+            <section class="creator-subscription" style="margin-top:20px;">
+              <h3>Unlock Creator Access</h3>
+              
+              <div id="creatorsPaywall">
+                <p class="muted tiny">Gated by a global subscription. Unlock exclusive content and PPVs.</p>
+                <button type="button" id="btnSubscribeCreators" class="btn btn--primary">$9.99/month – Subscribe</button>
+              </div>
+
+              <div id="creatorsUnlocked" hidden>
+                <div style="background: rgba(46, 213, 115, 0.1); border: 1px solid rgba(46, 213, 115, 0.3); padding: 16px; border-radius: 12px; margin-bottom: 24px; text-align:center;">
+                  <h3 style="color: #7ef5c4; margin:0 0 8px;">✔ Subscription Active</h3>
+                  <p class="muted tiny">You have full access to the Creator Space.</p>
+                  <br>
+                  <a href="creators.html" class="btn btn--primary btn--wide">Enter Creator Space</a>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </section>
+
+        <section class="panel" id="panel-premium" data-panel="premium" hidden>
+          <header class="panel__header">
+            <h2>The Premium Society</h2>
+            <p class="muted">An exclusive enclave for the distinguished.</p>
+          </header>
+          
+          <div class="panel__body">
+            
+            <div id="premiumStateNone" style="text-align: center; padding: 40px 20px;">
+              <div style="font-size: 48px; margin-bottom: 20px;">💎</div>
+              <h3 style="color: #fff; margin-bottom: 10px;">Join the Elite Circle</h3>
+              <p class="muted" style="max-width: 500px; margin: 0 auto 30px; line-height: 1.6;">
+                TrueMatch Premium is reserved for individuals seeking high-society engagement. 
+                Access is granted by application only. Members enjoy concierge matchmaking, 
+                exclusive events, and verified status.
+              </p>
+              <button class="btn btn--primary btn--wide" id="btnOpenPremiumApply" style="max-width: 300px;">
+                Apply to be a Premium Member
+              </button>
+            </div>
+
+            <div id="premiumStatePending" hidden style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: 16px; text-align: center; margin-top: 20px;">
+              <div style="font-size: 32px; margin-bottom: 16px;">🥂</div>
+              <h3 style="color: #fff;">Application Received</h3>
+              <p class="muted">
+                Your application to the Premium Society is being reviewed by our committee. 
+                We vet profiles based on career, lifestyle, and authenticity.
+              </p>
+            </div>
+
+            <div id="premiumStateApproved" hidden style="background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,215,0,0.05)); border: 1px solid rgba(255,215,0,0.3); padding: 24px; border-radius: 16px; text-align: center;">
+              <div style="font-size: 32px; margin-bottom: 16px;">🎩</div>
+              <h3 style="color: #ffd700;">Welcome to the Society</h3>
+              <p class="muted">
+                You are now a verified Premium Member. Your concierge will contact you shortly.
+              </p>
+              <br>
+              <button class="btn btn--ghost" style="border-color: #ffd700; color: #ffd700;">View Member Privileges</button>
+            </div>
+
+          </div>
+        </section>
+
+        <section class="panel" id="panel-settings" data-panel="settings" hidden>
+          <div class="container" style="max-width:600px; margin:0 auto 60px;">
+            <header class="panel-header">
+              <h2>Settings</h2>
+            </header>
+
+            <div class="card settings-card">
+              <div class="settings-header">
+                <div class="settings-avatar">
+                  <img id="sAvatar" src="assets/images/truematch-mark.png" alt="Avatar">
+                </div>
+                
+                <div class="settings-text-col">
+                  <h3 id="sNameDisplay" style="margin:0; font-size:1.1rem;">Loading...</h3>
+                  <p id="sEmailDisplay" class="muted tiny" style="margin:0; overflow:hidden; text-overflow:ellipsis;">...</p>
+                </div>
+
+                <button id="btnEditProfile" class="btn btn--sm btn--ghost">
+                  Edit Profile
+                </button>
+              </div>
+
+              <hr class="divider">
+
+              <div class="settings-grid">
+                <div class="settings-row">
+                  <span class="muted">City</span>
+                  <span id="dispCity" class="text-right">—</span>
+                </div>
+                <div class="settings-row">
+                  <span class="muted">Age Range</span>
+                  <span id="dispAge" class="text-right">—</span>
+                </div>
+                <div class="settings-row">
+                  <span class="muted">Ethnicity</span>
+                  <span id="dispEthnicity" class="text-right">—</span>
+                </div>
+                <div class="settings-row">
+                  <span class="muted">Looking For</span>
+                  <span id="dispLooking" class="text-right">—</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card settings-card" style="margin-top:20px;">
+              <h3>Security</h3>
+              <div class="settings-row" style="margin-top:12px;">
+                <span class="muted">Password</span>
+                <button id="btnChangePassword" class="btn btn--sm btn--ghost">Change Password</button>
+              </div>
+            </div>
+
+            </div>
+        </section>
+
+      </div>
+    </section>
+  </main>
+
+  <dialog id="dlgPremiumApply" class="tm-dialog">
+    <form method="dialog" id="frmPremiumApply" class="tm-form">
+      <header class="dialog__header">
+        <h3>Premium Society application</h3>
+      </header>
+      
+      <div class="dialog__body">
+        <div class="tm-row">
+          <div class="tm-field">
+            <label>Full Name</label>
+            <input type="text" name="fullName" class="tm-input" required>
+          </div>
+          <div class="tm-field">
+            <label>Age</label>
+            <input type="number" name="age" class="tm-input" required>
+          </div>
+        </div>
+        
+        <div class="tm-field">
+          <label>Current Occupation</label>
+          <input type="text" name="occupation" class="tm-input" required>
+        </div>
+        
+        <div class="tm-field">
+          <label>Financial Status / Annual Income</label>
+          <textarea name="finance" class="tm-input" rows="2" required placeholder="Strictly confidential."></textarea>
+        </div>
+      </div>
+
+      <footer class="dialog__footer">
+        <button type="button" class="btn btn--ghost" id="btnPremiumCancel">Cancel</button>
+        <button type="submit" class="btn btn--primary">Submit</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="dlgCreatorApply" class="tm-dialog">
+    <form method="dialog" id="frmCreatorApply" class="tm-form">
+      <header class="dialog__header">
+        <h3>Creator Application</h3>
+        <p class="muted tiny">Monetize your content. Verified creators can set monthly rates.</p>
+      </header>
+
+      <div class="dialog__body">
+        <div class="tm-row">
+          <div class="tm-field">
+            <label>Stage Name / Handle</label>
+            <input type="text" name="handle" class="tm-input" placeholder="@yourname" required>
+          </div>
+          <div class="tm-field">
+            <label>Gender</label>
+            <div class="tm-select-wrapper">
+              <select name="gender" class="tm-input" required>
+                <option value="" disabled selected>Select...</option>
+                <option value="woman">Woman</option>
+                <option value="man">Man</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="tm-field">
+          <label>Monthly Subscription Price ($)</label>
+          <input type="number" name="price" class="tm-input" min="5" value="15" required>
+          <p class="tiny muted" style="margin-top:4px;">Minimum $5. You keep 80%.</p>
+        </div>
+
+        <div class="tm-field">
+          <label>Content Style & Boundaries</label>
+          <textarea name="contentStyle" class="tm-input" rows="4" required placeholder="Describe what you will post (e.g., Cosplay, Lingerie, Vlogs). What are your hard limits?"></textarea>
+        </div>
+
+        <div class="tm-field">
+          <label>Social Links (for verification)</label>
+          <input type="text" name="links" class="tm-input" placeholder="Instagram, TikTok, or Twitter URL">
+        </div>
+      </div>
+
+      <footer class="dialog__footer">
+        <button type="button" class="btn btn--ghost" id="btnCloseCreatorApply">Cancel</button>
+        <button type="submit" class="btn btn--primary">Submit Application</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="dlgProfile" class="modal">
+    <form method="dialog" id="frmProfile" class="modal__body">
+      <header class="modal__header">
+        <h3>Edit Profile</h3>
+        <button type="button" class="btn-icon" id="btnCloseProfile">✕</button>
+      </header>
+      
+      <div class="tm-modal__scroll">
+        <div style="text-align:center; margin-bottom:24px;">
+          <div style="position:relative; width:100px; height:100px; margin:0 auto 10px;">
+            <img id="previewAvatar" src="assets/images/truematch-mark.png" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.2);">
+            <label for="inpAvatarFile" style="position:absolute; bottom:0; right:0; background:#7a9dff; color:#000; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.5);">📷</label>
+          </div>
+          <input type="file" id="inpAvatarFile" accept="image/*" hidden>
+          <p class="muted tiny">Tap icon to change photo</p>
+        </div>
+
+        <div class="tm-field">
+          <label class="tm-field__label">Full Name</label>
+          <input type="text" name="name" id="inpName" required />
+        </div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div class="tm-field">
+            <label class="tm-field__label">Age</label>
+            <input type="number" name="age" id="inpUserAge" min="18" required />
+          </div>
+          <div class="tm-field">
+            <label class="tm-field__label">City</label>
+            <input type="text" name="city" id="inpCity" required />
+          </div>
+        </div>
+
+        <div class="tm-field">
+          <label class="tm-field__label">Email Address</label>
+          <input type="email" name="email" id="inpEmail" required />
+        </div>
+
+        <hr class="divider" style="margin: 20px 0; opacity:0.3;">
+        
+        <p class="muted tiny" style="margin-bottom:10px;">MATCH PREFERENCES</p>
+        
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="tm-field">
+            <label class="tm-field__label">Min Age</label>
+            <input type="number" name="ageMin" id="inpAgeMin" />
+          </div>
+          <div class="tm-field">
+            <label class="tm-field__label">Max Age</label>
+            <input type="number" name="ageMax" id="inpAgeMax" />
+          </div>
+        </div>
+
+        <div class="tm-field">
+          <label class="tm-field__label">Ethnicity Preference</label>
+          <select name="ethnicity" id="inpEthnicity">
+            <option value="any">Any</option>
+            <option value="asian">Asian</option>
+            <option value="black">Black</option>
+            <option value="caucasian">Caucasian</option>
+            <option value="hispanic">Hispanic</option>
+            <option value="middle_eastern">Middle Eastern</option>
+          </select>
+        </div>
+
+        <div class="tm-field">
+          <label class="tm-field__label">Looking For</label>
+          <select name="lookingFor" id="inpLooking">
+            <option value="women">Women</option>
+            <option value="men">Men</option>
+            <option value="both">Both</option>
+          </select>
+        </div>
+      </div>
+
+      <footer class="modal__footer">
+        <button type="button" id="btnCancelProfile" class="btn btn--ghost">Cancel</button>
+        <button type="submit" class="btn btn--primary">Save Changes</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="dlgPassword" class="modal">
+    <form method="dialog" id="frmPassword" class="modal__body">
+      <header class="modal__header">
+        <h3>Change Password</h3>
+      </header>
+      
+      <div class="tm-field">
+        <label class="tm-field__label">Current Password</label>
+        <input type="password" name="oldPassword" required />
+      </div>
+      <div class="tm-field">
+        <label class="tm-field__label">New Password</label>
+        <input type="password" name="newPassword" minlength="6" required />
+      </div>
+
+      <footer class="modal__footer">
+        <button type="button" id="btnCancelPassword" class="btn btn--ghost">Cancel</button>
+        <button type="submit" class="btn btn--primary">Update Password</button>
+      </footer>
+    </form>
+  </dialog>
+  <div id="tm-toast" class="toast">Action successful</div>
+  
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      // 1. Get current user info
+      const res = await fetch('/api/me');
+      const data = await res.json();
+      
+      if (data && data.ok && data.user) {
+        const currentPlan = data.user.plan || 'free';
+        
+        // 2. Find all plan cards/buttons
+        const buttons = document.querySelectorAll('[data-plan]');
+        const cards = document.querySelectorAll('.plan-card'); 
+
+        // 3. Disable the Current Plan
+        buttons.forEach(btn => {
+          const planKey = btn.getAttribute('data-plan'); 
+          
+          let normalizedCurrent = currentPlan;
+          if(currentPlan.includes('plus')) normalizedCurrent = 'tier1';
+          if(currentPlan.includes('elite')) normalizedCurrent = 'tier2';
+          if(currentPlan.includes('concierge')) normalizedCurrent = 'tier3';
+
+          if (planKey === normalizedCurrent) {
+            // Change Button Text & State
+            btn.textContent = "Current Plan";
+            btn.disabled = true;
+            btn.classList.add('btn--disabled');
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'default';
+            btn.style.background = 'rgba(255,255,255,0.1)';
+            btn.style.border = '1px solid rgba(255,255,255,0.2)';
+            
+            // Dim the entire card
+            const card = btn.closest('.card') || btn.closest('.plan-card');
+            if (card) {
+              card.style.opacity = '0.6';
+              card.style.filter = 'grayscale(0.5)';
+              card.style.border = '1px solid rgba(255,255,255,0.1)';
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Failed to check current plan", e);
+    }
+  });
+</script>
+  <script>
+    (() => {
+      const canvas = document.getElementById('tm-bg-canvas');
+      const ctx = canvas.getContext('2d', { alpha:true });
+      let W=0,H=0,D=1,pts=[],raf;
+      const M={x:0,y:0,a:false};
+      const RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function count(){ return Math.max(42, Math.min(90, Math.floor((innerWidth*innerHeight)/22000)+28)); }
+      function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
+      function resize(){
+        D=Math.min(devicePixelRatio||1,2);
+        W=innerWidth; H=innerHeight;
+        canvas.width=W*D; canvas.height=H*D;
+        canvas.style.width=W+'px'; canvas.style.height=H+'px';
+        ctx.setTransform(D,0,0,D,0,0);
+        pts=[];
+        const n=count();
+        for(let i=0;i<n;i++){
+          pts.push({ x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-.5)*.35, vy:(Math.random()-.5)*.35, r:1+Math.random()*1.3 });
+        }
+        draw(true);
+      }
+      function step(){
+        for(const p of pts){
+          p.x+=p.vx; p.y+=p.vy;
+          if(p.x<0||p.x>W) p.vx*=-1;
+          if(p.y<0||p.y>H) p.vy*=-1;
+          p.x=clamp(p.x,0,W);
+          p.y=clamp(p.y,0,H);
+          if(M.a){
+            const dx=p.x-M.x, dy=p.y-M.y, d2=dx*dx+dy*dy, R=220;
+            if(d2<R*R && d2>1){
+              const d=Math.sqrt(d2), f=(1-d/R)*.035;
+              p.vx+=(dx/d)*f; p.vy+=(dy/d)*f;
+            }
+          }
+          p.vx*=.985; p.vy*=.985;
+        }
+      }
+      function draw(staticOnly){
+        ctx.clearRect(0,0,W,H);
+        ctx.globalCompositeOperation='lighter';
+        const R=150, R2=R*R;
+        for(let i=0;i<pts.length;i++){
+          const a=pts[i];
+          for(let j=i+1;j<pts.length;j++){
+            const b=pts[j];
+            const dx=a.x-b.x, dy=a.y-b.y, d2=dx*dx+dy*dy;
+            if(d2<=R2){
+              const t=1-(Math.sqrt(d2)/R), a1=t*.12;
+              ctx.strokeStyle=`rgba(255,255,255,${a1})`;
+              ctx.lineWidth=1;
+              ctx.beginPath();
+              ctx.moveTo(a.x,a.y);
+              ctx.lineTo(b.x,b.y);
+              ctx.stroke();
+            }
+          }
+        }
+        if(M.a){
+          const MR=210, MR2=MR*MR;
+          for(const p of pts){
+            const dx=p.x-M.x, dy=p.y-M.y, d2=dx*dx+dy*dy;
+            if(d2<MR2){
+              const t=1-(Math.sqrt(d2)/MR), a2=t*.18;
+              ctx.strokeStyle=`rgba(100,233,238,${a2})`;
+              ctx.lineWidth=1;
+              ctx.beginPath();
+              ctx.moveTo(p.x,p.y);
+              ctx.lineTo(M.x,M.y);
+              ctx.stroke();
+            }
+          }
+        }
+        for(const p of pts){
+          ctx.fillStyle='rgba(255,255,255,.55)';
+          ctx.beginPath()
+          ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+          ctx.fill();
+        }
+        ctx.globalCompositeOperation='source-over';
+        if(!staticOnly && !RM) step();
+      }
+      function loop(){ draw(false); raf=requestAnimationFrame(loop); }
+      window.addEventListener('resize', ()=>{ cancelAnimationFrame(raf); resize(); if(!RM) loop(); });
+      window.addEventListener('mousemove', e=>{ M.x=e.clientX; M.y=e.clientY; M.a=true; });
+      window.addEventListener('mouseleave', ()=>{ M.a=false; });
+      window.addEventListener('touchstart', e=>{ M.x=e.touches[0].clientX; M.y=e.touches[0].clientY; M.a=true; });
+      window.addEventListener('touchend', ()=>{ M.a=false; });
+      window.addEventListener('touchmove', e=>{ M.x=e.touches[0].clientX; M.y=e.touches[0].clientY; M.a=true; });
+      resize(); if(!RM) loop();
+    })();
+  </script>
+
+  <script src="./dashboard-nav.js"></script>
+  <script src="./tm-loader.js"></script>
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>

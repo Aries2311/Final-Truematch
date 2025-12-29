@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <title>TrueMatch — Creator Space</title>
+  
+  <link rel="icon" href="assets/images/truematch-mark.png" />
+  <link rel="stylesheet" href="font.css" />
+  <link rel="stylesheet" href="animations.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="responsive.css" />
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="creators.css" />
+  
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body class="tm-dark">
+
+  <canvas id="tm-bg-canvas" aria-hidden="true"></canvas>
+
+  <div id="access-denied" class="denied-state" hidden>
+    <div class="denied-card">
+      <div style="font-size: 64px; margin-bottom: 24px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));">🔒</div>
+      <h2 style="margin-bottom: 12px;">Exclusive Content Locked</h2>
+      <p class="muted" style="line-height: 1.6; margin-bottom: 32px;">
+        This space features premium content from our verified creators. 
+        Subscribe to unlock workouts, behind-the-scenes, and direct messaging.
+      </p>
+      <div style="display:flex; flex-direction: column; gap:12px;">
+        <button id="btnSubscribe" class="btn btn--primary btn--wide">
+          Unlock All Access ($9.99/mo)
+        </button>
+        <button id="btnBack" class="btn btn--ghost btn--wide">
+          Return to Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="payment-modal" class="payment-overlay">
+    <div class="payment-card">
+      <div style="font-size: 32px; margin-bottom: 16px;">💳</div>
+      <h3 style="margin-bottom: 8px;">Confirm Subscription</h3>
+      <p class="muted tiny" style="margin-bottom: 24px; line-height: 1.5;">
+        You will be redirected to Coinbase to complete your secure payment of <strong style="color:white;">$9.99/mo</strong>.
+      </p>
+      
+      <div class="payment-actions">
+        <button id="btnPayCancel" class="btn btn--ghost" style="flex:1;">Cancel</button>
+        <button id="btnPayConfirm" class="btn btn--primary" style="flex:1;">Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="creator-feed" class="feed-wrapper" hidden>
+    <header class="feed-header">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <img src="assets/images/truematch-mark.png" style="width:32px; height:32px;">
+        <h2 style="font-size:1.25rem; margin:0;">Creator Feed</h2>
+      </div>
+      <button class="btn btn--sm btn--ghost" onclick="window.location.href='dashboard.html'">
+        <i class="fa-solid fa-arrow-left"></i> &nbsp;Exit
+      </button>
+    </header>
+    <div id="feed-container"></div>
+    <div style="text-align:center; padding: 40px 0; opacity: 0.5;">
+      <p class="tiny">You've reached the end of the feed.</p>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('tm-bg-canvas');
+      const ctx = canvas.getContext('2d', { alpha:true });
+      let W=0,H=0,raf=null;
+      const particles = [];
+      const mouse = { x:0, y:0, active:false };
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function count(){ return Math.max(40, Math.min(80, Math.floor((innerWidth*innerHeight)/20000))); }
+
+      function resize(){
+        const d = Math.min(window.devicePixelRatio||1, 2);
+        W = window.innerWidth; H = window.innerHeight;
+        canvas.width = W * d; canvas.height = H * d;
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+        ctx.setTransform(d,0,0,d,0,0);
+        particles.length = 0; const n = count();
+        for(let i=0; i<n; i++){
+    particles.push({
+    x: Math.random() * W,
+    y: Math.random() * H,
+    vx: (Math.random() - 0.5) * 0.35,
+    vy: (Math.random() - 0.5) * 0.35,
+    r: 1 + Math.random() * 1.3
+});
+
+        }
+        draw(true);
+      }
+      function step(){
+        for (const p of particles){
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0 || p.x > W) p.vx *= -1; if (p.y < 0 || p.y > H) p.vy *= -1;
+        }
+      }
+      function draw(staticOnly){
+        ctx.clearRect(0,0,W,H);
+        const R=150, R2=R*R; ctx.lineWidth = 0.8; 
+        for(let i=0; i<particles.length; i++){
+          const a = particles[i];
+          for(let j=i+1; j<particles.length; j++){
+            const b = particles[j];
+            const dx = a.x - b.x; const dy = a.y - b.y; const dist2 = dx*dx + dy*dy;
+            if (dist2 < R2) {
+              const alpha = (1 - Math.sqrt(dist2)/R) * 0.15;
+              ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+              ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+            }
+          }
+        }
+        if (mouse.active){
+          const r=210, r2=r*r;
+          for (const p of particles){
+            const dx=p.x-mouse.x, dy=p.y-mouse.y, d2=dx*dx+dy*dy;
+            if (d2<r2){ 
+              const t=1-(Math.sqrt(d2)/r), a=t*.18;
+              ctx.strokeStyle=`rgba(100,233,238,${a})`; ctx.lineWidth=1;
+              ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(mouse.x,mouse.y); ctx.stroke();
+            }
+          }
+        }
+        for (const p of particles){ ctx.fillStyle='rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }
+        if (!reduceMotion && !staticOnly) step();
+      }
+      function loop(){ draw(false); raf=requestAnimationFrame(loop); }
+      function onMove(e){ 
+        const t=e.touches&&e.touches[0]; 
+        mouse.x=(t?t.clientX:e.clientX); mouse.y=(t?t.clientY:e.clientY); mouse.active=true; 
+      }
+      function onLeave(){ mouse.active=false; }
+      window.addEventListener('resize', ()=>{ cancelAnimationFrame(raf); resize(); if(!reduceMotion) loop(); });
+      window.addEventListener('mousemove', onMove, {passive:true});
+      window.addEventListener('touchstart', onMove, {passive:true});
+      window.addEventListener('touchmove', onMove, {passive:true});
+      window.addEventListener('mouseleave', onLeave);
+      window.addEventListener('touchend', onLeave);
+      resize(); if(!reduceMotion) loop();
+    })();
+  </script>
+
+  <script type="module" src="creators.js"></script>
+</body>
+</html>

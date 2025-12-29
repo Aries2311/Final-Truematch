@@ -1,0 +1,54 @@
+# =========================
+# Node dependencies
+# =========================
+node_modules/
+
+# =========================
+# Build / dist outputs
+# =========================
+build/
+dist/
+
+# =========================
+# Local uploads / runtime data
+# =========================
+uploads/
+tmp/
+temp/
+*.tmp
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Environment & secrets
+# =========================
+.env
+.env.local
+.env.*.local
+
+# Firebase / Google service accounts (VERY IMPORTANT)
+firebase-service-account.json
+*service-account*.json
+*serviceAccount*.json
+
+# =========================
+# OS / editor junk
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# =========================
+# Test / coverage output (for later if you add tests)
+# =========================
+coverage/
+.nyc_output/

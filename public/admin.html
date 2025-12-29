@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.API_BASE = '';</script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>TrueMatch • Admin Space</title>
+  
+  <link rel="icon" href="assets/images/truematch-mark.png" />
+  <link rel="stylesheet" href="font.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="admin.css" />
+  
+  <style>
+    /* Admin-specific inline overrides if needed */
+    html, body { background: #05070d; color: #e8f1ff; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body class="tm-dark">
+
+  <header class="admin-header">
+    <div class="header-row">
+      <div class="brand">
+        <img src="assets/images/truematch-mark.png" alt="Logo">
+        <span>ADMIN</span>
+      </div>
+      
+      <nav class="admin-nav">
+        <button class="nav-btn active" data-tab="overview">Overview</button>
+        <button class="nav-btn" data-tab="users">Users</button>
+        <button class="nav-btn" data-tab="matchmaking">Matchmaking</button>
+        <button class="nav-btn" data-tab="creators">Creators</button>
+        <button class="nav-btn" data-tab="premium">Premium</button>
+        <button class="nav-btn" data-tab="concierge">Concierge</button>
+      </nav>
+
+      <button id="btn-logout-admin" class="btn btn--sm btn--ghost text-danger">Logout</button>
+    </div>
+  </header>
+
+  <main class="admin-content">
+
+    <section id="panel-overview" class="admin-panel">
+      <h2 class="panel-title">Dashboard Overview</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Users</span>
+          <strong class="stat-val" id="stat-users-count">-</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Pending Creators</span>
+          <strong class="stat-val text-accent" id="stat-creators-pending">-</strong>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Active Dates</span>
+          <strong class="stat-val" id="stat-dates-active">-</strong>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-users" class="admin-panel hidden">
+      <div class="panel-head">
+        <h2 class="panel-title">User Management</h2>
+        <button id="btn-refresh-users" class="btn btn--sm btn--ghost">Refresh List</button>
+      </div>
+      <div class="table-container">
+        <div class="table-header">
+          <div>User / Email</div>
+          <div>Plan</div>
+          <div>Status</div>
+          <div style="text-align:right">Actions</div>
+        </div>
+        <div id="users-table-body" class="table-body">
+          <p class="muted p-4">Loading users...</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-matchmaking" class="admin-panel hidden">
+      <h2 class="panel-title">Shortlist Serving</h2>
+      <div class="split-layout">
+        <div class="card p-4">
+          <label class="label-block">Target Email</label>
+          <input type="text" id="admin-email" placeholder="user@example.com" class="input-block mb-4">
+          
+          <label class="label-block">Profiles (JSON or Text)</label>
+          <textarea id="profiles-input" rows="10" class="input-block mb-4" placeholder='[{"name":"Alice", "age":25...}]'></textarea>
+          
+          <div class="actions">
+            <button id="btn-load" class="btn btn--ghost">Load Default Mock</button>
+            <button id="btn-serve" class="btn btn--primary">Serve Shortlist</button>
+          </div>
+          <p id="admin-status" class="mt-2 muted tiny"></p>
+        </div>
+
+        <div class="card p-4">
+          <label class="label-block">Preview Parsed Data</label>
+          <div id="admin-list-body" class="preview-box">
+            <p class="muted tiny">Preview will appear here...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-creators" class="admin-panel hidden">
+      <div class="panel-head">
+        <h2 class="panel-title">Creator Applications</h2>
+        <button id="btn-refresh-creators" class="btn btn--sm btn--ghost">Refresh</button>
+      </div>
+      
+      <div class="table-container">
+        <div class="table-header" style="grid-template-columns: 1fr 1fr 2fr 100px;">
+          <div>Handle / Email</div>
+          <div>Details</div>
+          <div>Content Style</div>
+          <div style="text-align:right">Decision</div>
+        </div>
+        <div id="creators-list-body" class="table-body">
+          <p class="muted p-4">Loading applications...</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-premium" class="admin-panel hidden">
+      <div class="panel-head">
+        <h2 class="panel-title">Premium Society Requests</h2>
+        <button id="btn-refresh-premium" class="btn btn--sm btn--ghost">Refresh</button>
+      </div>
+      
+      <div class="table-container">
+        <div class="table-header" style="grid-template-columns: 1fr 1fr 2fr 100px;">
+          <div>Applicant (Age)</div>
+          <div>Occupation</div>
+          <div>Financial Status</div>
+          <div style="text-align:right">Action</div>
+        </div>
+        <div id="premium-list-body" class="table-body">
+          <p class="muted p-4">Loading requests...</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel-concierge" class="admin-panel hidden">
+      <h2 class="panel-title">Concierge & Dates</h2>
+      <div class="card p-4" style="max-width: 600px;">
+        <h3 class="mb-4">Log Confirmed Date</h3>
+        <form id="form-confirmed">
+          <div class="grid-2 gap-4 mb-4">
+            <div>
+              <label class="label-block">User Email</label>
+              <input type="email" id="cd-email" class="input-block" required placeholder="client@email.com">
+            </div>
+            <div>
+              <label class="label-block">Match Name</label>
+              <input type="text" id="cd-name" class="input-block" required placeholder="Jane Doe">
+            </div>
+          </div>
+          
+          <div class="grid-2 gap-4 mb-4">
+            <div>
+              <label class="label-block">Date & Time</label>
+              <input type="datetime-local" id="cd-when" class="input-block" required>
+            </div>
+            <div>
+              <label class="label-block">Location</label>
+              <input type="text" id="cd-location" class="input-block" placeholder="Restaurant Name">
+            </div>
+          </div>
+
+          <label class="label-block">Notes / Instructions</label>
+          <textarea id="cd-notes" class="input-block mb-4" rows="2" placeholder="Table reserved under..."></textarea>
+
+          <button type="submit" class="btn btn--primary">Save Date</button>
+          <p id="cd-status" class="mt-2 muted tiny"></p>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="./tm-api.js"></script> <script type="module" src="admin.js"></script>
+</body>
+</html>

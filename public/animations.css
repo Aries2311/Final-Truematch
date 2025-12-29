@@ -1,0 +1,106 @@
+/* =======================================================
+   TrueMatch — Global Animations
+   One file shared by all pages (landing, auth, dashboard, etc.)
+   ======================================================= */
+
+:root {
+  --tm-anim-fast: 160ms;
+  --tm-anim-normal: 320ms;
+  --tm-anim-slow: 900ms;
+  --tm-anim-ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ---------------- PAGE FADE-IN (global) ---------------- */
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Apply this to <body> or a main wrapper */
+.page-enter {
+  animation: pageFadeIn var(--tm-anim-slow) var(--tm-anim-ease-soft) both;
+}
+
+/* ---------------- FADE-UP FOR HEADERS / BLOCKS ---------------- */
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slightly slower and more visible */
+.animate-fade-up {
+  animation: fadeUp 0.9s var(--tm-anim-ease-soft) both;
+}
+
+/* Even slower plain fade (no movement) */
+@keyframes slowFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fade-slow {
+  animation: slowFade 1.1s ease-out both;
+}
+
+/* Delay helpers for staggered elements */
+.delay-1 { animation-delay: 0.18s; }
+.delay-2 { animation-delay: 0.32s; }
+.delay-3 { animation-delay: 0.48s; }
+.delay-4 { animation-delay: 0.64s; }
+
+/* ---------------- HOVER HELPERS (subtle but visible) ---------------- */
+
+.anim-smooth {
+  transition:
+    opacity var(--tm-anim-normal) var(--tm-anim-ease-soft),
+    transform var(--tm-anim-normal) var(--tm-anim-ease-soft),
+    box-shadow var(--tm-anim-normal) var(--tm-anim-ease-soft),
+    background-color var(--tm-anim-normal) var(--tm-anim-ease-soft),
+    border-color var(--tm-anim-normal) var(--tm-anim-ease-soft);
+}
+
+/* Lift on hover – nice for cards & buttons */
+.hover-lift {
+  transform: translateY(0);
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Pop + glow for main CTAs only (use sparingly) */
+.hover-pop {
+  transform: translateY(0) scale(1);
+}
+.hover-pop:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow:
+    0 0 0 1px rgba(0, 255, 203, 0.2),
+    0 10px 26px rgba(0, 0, 0, 0.65);
+}
+
+/* ---------------- REDUCED MOTION SUPPORT ---------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

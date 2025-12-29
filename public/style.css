@@ -1,0 +1,494 @@
+/* ===========================
+   TrueMatch – Global Styles (desktop-first + San Muñoz bg)
+   =========================== */
+
+:root{
+  --bg: #0a0f1a;
+  --panel: #0d1426;
+  --card: #111a2e;
+  --text: #F6FAFF;
+  --muted: #C7D0DC;
+  --primary: #64E9EE;
+  --primary-ink: #03151A;
+  --ring: rgba(100,233,238,0.35);
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --radius: 16px;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+*{ box-sizing:border-box; }
+html, body{ scroll-behavior:smooth; }
+
+body{
+  margin:0;
+  color:var(--text);
+  font: 400 16px/1.7 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI","SF Pro Text",-system-ui,Roboto,"Helvetica Neue",Arial,"Noto Sans",
+        "Apple Color Emoji","Segoe UI Emoji";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+  /* dati: background: transparent !important; */
+  background: #000000 !important;
+}
+
+/* === San Muñoz background (image + animated feel) with gradient fallback ===
+   NOTE: keep at least one of these paths existing in /assets to show the pattern. */
+body::before{
+  content:"";
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: -1 !important;
+  pointer-events: none;
+
+  /* dati dito lahat ng image + gradient;
+     ngayon pure black lang para dark base */
+  background: #000000;
+}
+
+/* Containers */
+.container{ width:100%; max-width:1100px; margin:0 auto; padding:0 1.25rem; }
+
+/* Header */
+.site-header{
+  position:sticky; top:0; z-index:100;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  background: linear-gradient(to bottom, rgba(3,8,20,.88), rgba(3,8,20,.72), transparent);
+}
+
+.nav{ display:flex; align-items:center; justify-content:space-between; padding:.9rem 0; position:relative; }
+
+/* Brand — slightly larger */
+.brand{ display:flex; align-items:center; gap:.7rem; color:var(--text); text-decoration:none; transition:transform .2s ease, box-shadow .2s ease; }
+.brand__logo{ width:40px; height:40px; object-fit:contain; }  /* ↑ from 34 */
+.brand__name{ font-weight:700; letter-spacing:.24px; white-space:nowrap; font-size:1.15rem; } /* ↑ from 1.05 */
+.brand:hover{ transform: translateY(-1px) scale(1.03); box-shadow: 0 0 0 6px rgba(100,233,238,.12) inset; border-radius:12px; }
+
+/* Desktop nav */
+.nav__menu{ display:flex; align-items:center; gap:1rem; }
+.nav__menu a{
+  color:var(--text); text-decoration:none; padding:.5rem .7rem; border-radius:10px;
+  transition: transform .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.nav__menu a:hover{ background: rgba(255,255,255,.06); transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(255,255,255,.10) inset; }
+.nav__menu a.is-active{ color: var(--primary); background: rgba(100,233,238,.12); box-shadow: 0 0 0 1px rgba(100,233,238,.25) inset;}
+
+/* Right actions */
+.nav__actions{ display:flex; align-items:center; gap:.65rem; }
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:.6rem .9rem; border-radius:12px; border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06); color: var(--text); text-decoration:none;
+  box-shadow: var(--shadow);
+  transition: transform .2s ease, background .2s ease, border-color .2s ease;
+  cursor:pointer;
+}
+.btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.2); }
+.btn.primary{ background: linear-gradient(135deg, rgba(100,233,238,.95), rgba(41,163,255,.85)); color: var(--primary-ink); border: none; }
+.btn.primary:hover{ filter: brightness(1.04); }
+
+/* Hamburger (mobile) */
+.nav__toggle{
+  display:none;
+  width:42px; height:42px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  box-shadow: var(--shadow);
+  cursor:pointer;
+}
+.nav__bar{ display:block; width:18px; height:2px; background: rgba(255,255,255,.9); margin:4px auto; border-radius:999px; }
+
+/* Mobile dropdown (glass) */
+.nav__dropdown{
+  position:absolute;
+  top: calc(100% + .6rem);
+  right: 1.25rem;
+  width: min(340px, calc(100vw - 2.5rem));
+  border-radius: 18px;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 50px rgba(0,0,0,.55);
+  padding: .65rem;
+  display:none;
+}
+.nav__dropdown a{
+  display:block;
+  padding:.85rem .9rem;
+  border-radius: 14px;
+  color: var(--text);
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+.nav__dropdown a:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.10); }
+
+/* Hero */
+.hero{
+  padding: clamp(3.4rem, 6vw, 5rem) 0 3rem;
+}
+
+.hero__layout{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:3rem;
+}
+
+.hero__text{
+  max-width: 520px;
+}
+
+.hero h1{
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  letter-spacing: -0.02em;
+  margin: .8rem 0 .6rem;
+  max-width: 18ch;
+}
+
+.hero p{
+  color: var(--muted);
+  margin: 0 0 1.1rem;
+  max-width: 40rem;
+}
+
+.hero__cta{
+  display:flex;
+  gap:.8rem;
+  justify-content:flex-start;
+  flex-wrap:wrap;
+  margin-top: 1rem;
+}
+
+.hero__logo-wrap{
+  flex:0 0 auto;
+  display:flex;
+  justify-content:center;
+}
+
+.hero__logo{
+  width: min(260px, 40vw);
+  height:auto;
+  object-fit:contain;
+  filter: drop-shadow(0 18px 45px rgba(0,0,0,.7));
+}
+
+.pill{
+  display:inline-flex;
+  padding:.35rem .7rem;
+  border-radius: 999px;
+  font-size:.85rem;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+}
+
+/* Hero responsive tweaks */
+@media (max-width: 768px){
+  .hero{
+    text-align:center;
+  }
+  .hero__layout{
+    flex-direction:column;
+  }
+  .hero__text{
+    max-width:100%;
+  }
+  .hero__cta{
+    justify-content:center;
+  }
+}
+
+/* Sections */
+section{ padding: 3.2rem 0; }
+.section__title{
+  font-size: 1.6rem;
+  margin: 0 0 1.1rem;
+}
+.cardgrid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+
+#features .cardgrid{
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 960px;
+  margin: 0 auto;
+}
+@media (max-width: 768px){
+  #features .cardgrid{
+    grid-template-columns: 1fr;
+  }
+}
+.card{
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.2rem;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+.card h3{ margin:.1rem 0 .35rem; }
+.muted{ color: var(--muted); }
+.tiny{ font-size:.85rem; }
+
+/* Pricing */
+.pricing{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; align-items:stretch; }
+.price{
+  position:relative;
+  background: rgba(0,0,0,.38);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: var(--radius);
+  padding: 1.3rem 1.25rem;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+.price__tag{
+  display:inline-flex;
+  align-items:center;
+  gap:.5rem;
+  padding:.25rem .55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  font-size:.82rem;
+}
+.price__value{ font-size: 2.1rem; font-weight: 800; margin:.55rem 0 .3rem; }
+.price ul{ margin:.8rem 0 1.1rem; padding-left: 1.1rem; color: var(--muted); }
+.price li{ margin: .35rem 0; }
+.price.is-featured{
+  border-color: rgba(100,233,238,.35);
+  box-shadow: 0 0 0 1px rgba(100,233,238,.20) inset, var(--shadow);
+}
+
+/* Testimonials / carousel */
+.carousel{ position:relative; overflow:hidden; border-radius: var(--radius); }
+.slides{ display:flex; transition: transform .45s ease; }
+.slide{ min-width:100%; padding: 1.3rem; background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.10); backdrop-filter: blur(12px); }
+.slide p{ margin:0 0 .7rem; color: var(--muted); }
+.slide strong{ display:block; }
+.carousel__controls{ display:flex; justify-content:center; gap:.6rem; margin-top:.9rem; }
+.dots button{ width:7px; height:7px; border-radius:999px; border:none; background:rgba(255,255,255,.28); padding:0; }
+.dots button.is-active{ width:18px; background:var(--primary); }
+
+/* FAQ */
+.faq details{ background: rgba(0,0,0,.35); border-radius:12px; padding:1rem; margin-bottom:.6rem; border:1px solid rgba(255,255,255,.06); }
+.faq summary{ cursor:pointer; font-weight:600; }
+
+/* Footer */
+.footer{ padding:2.4rem 0 2.8rem; border-top:1px solid rgba(255,255,255,.08); }
+.footer__grid{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+.footer__brand{ display:flex; align-items:center; gap:.75rem; }
+.footer__brand .brand__logo{ width:24px; height:24px; }
+.footer__nav a{ color:var(--muted); text-decoration:none; margin-left:1rem; font-size:.9rem; }
+.footer__nav a:hover{ color:var(--primary); }
+
+/* =========================================================
+   ELECTRIC CURRENTS BACKGROUND (all-blue shades)
+   - Appended; no HTML changes
+   - Layer order: base glow (body::before) < currents (html::before/after) < corner wires (body::after)
+========================================================= */
+/* Home page tweak: keep currents subtle so the interactive particles stay the focus */
+html.tm-home::before,
+html.tm-home::after{
+  opacity: .18; /* reduce only on index.html where <html class="tm-home"> */
+}
+
+:root{
+  --currents-bg: #071018;
+  --currents-blue-1: #00eaff;
+  --currents-blue-2: #29a3ff;
+  --currents-blue-3: #5ef0ff;
+  --currents-opacity-a: .50;
+  --currents-opacity-b: .35;
+  --currents-speed-a: 38s;
+  --currents-speed-b: 62s;
+}
+
+/* make sure html has base bg too */
+html{
+  background: #000;
+}
+
+/* animated drift */
+@keyframes currentsDriftA{
+  0%   { transform: translate3d(0,0,0) rotate(0deg); }
+  50%  { transform: translate3d(-2.5%, -1.2%,0) rotate(0.5deg); }
+  100% { transform: translate3d(0,0,0) rotate(0deg); }
+}
+@keyframes currentsDriftB{
+  0%   { transform: translate3d(0,0,0) rotate(0deg); }
+  50%  { transform: translate3d(1.8%, 2.2%,0) rotate(-0.6deg); }
+  100% { transform: translate3d(0,0,0) rotate(0deg); }
+}
+
+html::before,
+html::after{
+  content:"";
+  position:fixed; inset:-6%;
+  pointer-events:none;
+  background-repeat:repeat;
+  background-position:0 0;
+  background-size:700px 700px;
+  mix-blend-mode:screen;
+  transform:translateZ(0);
+}
+
+/* Layer A: denser network, slow drift */
+html::before{
+  z-index:-3;
+  opacity: var(--currents-opacity-a);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="700" height="700" viewBox="0 0 700 700"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="%2300eaff" stop-opacity="0.55"/><stop offset="1" stop-color="%2329a3ff" stop-opacity="0.35"/></linearGradient></defs><g fill="none" stroke="url(%23g)" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"><path d="M20 90 C120 30 210 140 320 80 S520 130 660 60"/><path d="M40 210 C160 120 260 260 360 180 S520 260 680 220"/><path d="M10 360 C140 300 220 420 340 330 S520 410 690 370"/><path d="M30 520 C170 450 260 560 380 480 S530 560 690 520"/><path d="M60 670 C200 610 280 700 420 640 S560 700 700 670"/></g><g fill="%235ef0ff" opacity="0.55"><circle cx="80" cy="95" r="2"/><circle cx="210" cy="135" r="2"/><circle cx="320" cy="82" r="2"/><circle cx="470" cy="110" r="2"/><circle cx="610" cy="72" r="2"/><circle cx="140" cy="220" r="2"/><circle cx="270" cy="255" r="2"/><circle cx="360" cy="180" r="2"/><circle cx="520" cy="260" r="2"/><circle cx="650" cy="230" r="2"/><circle cx="120" cy="360" r="2"/><circle cx="240" cy="420" r="2"/><circle cx="340" cy="330" r="2"/><circle cx="520" cy="410" r="2"/><circle cx="660" cy="372" r="2"/></g></svg>');
+  animation: currentsDriftA var(--currents-speed-a) ease-in-out infinite;
+}
+
+/* Layer B: wider, slower drift, more glow */
+html::after{
+  z-index:-3;
+  opacity: var(--currents-opacity-b);
+  background-size:900px 900px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900"><defs><linearGradient id="g2" x1="0" x2="1" y1="1" y2="0"><stop offset="0" stop-color="%235ef0ff" stop-opacity="0.36"/><stop offset="1" stop-color="%2300eaff" stop-opacity="0.22"/></linearGradient></defs><g fill="none" stroke="url(%23g2)" stroke-width="1.05" stroke-linecap="round" opacity="0.9"><path d="M40 130 Q160 40 260 140 T520 120 T780 160"/><path d="M80 320 Q220 240 340 320 T560 310 T820 360"/><path d="M60 520 Q200 460 320 540 T560 520 T840 580"/><path d="M40 720 Q200 640 320 720 T560 700 T860 760"/></g><g fill="%2329a3ff" opacity="0.42"><circle cx="260" cy="140" r="2"/><circle cx="520" cy="120" r="2"/><circle cx="780" cy="160" r="2"/><circle cx="340" cy="320" r="2"/><circle cx="560" cy="310" r="2"/><circle cx="820" cy="360" r="2"/><circle cx="320" cy="540" r="2"/><circle cx="560" cy="520" r="2"/><circle cx="840" cy="580" r="2"/></g></svg>');
+  filter: blur(0.2px);
+  animation: currentsDriftB var(--currents-speed-b) ease-in-out infinite;
+}
+
+
+/* =========================================================
+   Creatitfy-style interactive constellation background (HOME)
+   Why you didn't see it earlier:
+   - your body::before is solid black and was layered ABOVE the canvas.
+   Fix:
+   - keep canvas between background layers and your content.
+   Applies only when <body class="has-bg-canvas"> exists (index.html).
+========================================================= */
+
+#tm-bg-canvas{
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;            /* canvas sits behind content (see rule below) */
+  opacity: .95;
+  transform: translateZ(0);
+}
+
+/* Lift ALL page content above the canvas (without changing your HTML structure) */
+body.has-bg-canvas > :not(#tm-bg-canvas){
+  position: relative;
+  z-index: 1;
+}
+
+/* Make sure the base glow layer stays BEHIND the canvas.
+   (Your file sets body::before z-index very low for currents; we override only on home.) */
+body.has-bg-canvas::before{
+  z-index: -2 !important;
+  background: transparent !important;  /* don't cover the canvas */
+  background-image:
+    radial-gradient(1200px 700px at 50% 25%, rgba(100,233,238,.08), transparent 60%),
+    radial-gradient(900px 600px at 12% 88%, rgba(41,163,255,.06), transparent 55%),
+    radial-gradient(800px 520px at 88% 78%, rgba(94,240,255,.05), transparent 58%);
+  background-repeat: no-repeat;
+  background-position: center, center, center;
+  background-size: cover, cover, cover;
+  opacity: 1 !important;
+}
+
+/* Optional: keep the "electric currents" subtle on the home page so the constellation is visible */
+html.tm-home::before,
+html.tm-home::after{
+  opacity: .18;
+}
+
+@media (prefers-reduced-motion: reduce){
+  #tm-bg-canvas{ opacity: .35; }
+}
+/* =========================================
+   Global loader overlay centering (TrueMatch)
+   - Forces #tm_loader_overlay to always be a
+     full-screen flexbox centered in viewport.
+   - Uses !important to beat any conflicting styles.
+========================================= */
+#tm_loader_overlay{
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0,0,0,.55) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  pointer-events: all !important;
+}
+
+/* When .show is added from tm-loader.js */
+#tm_loader_overlay.show{
+  display: flex !important;
+}
+
+/* Onboarding intent modal */
+.tm-intent-modal {
+  border: none;
+  border-radius: 18px;
+  padding: 2.5rem 2rem;
+  max-width: 480px;
+  width: 100%;
+  background: rgba(3, 7, 18, 0.96);
+  color: #fff;
+}
+
+.tm-intent-modal::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.tm-intent-modal__title {
+  font-size: 1.4rem;
+  margin-bottom: 0.4rem;
+}
+
+.tm-intent-modal__subtitle {
+  font-size: 0.9rem;
+}
+
+.tm-intent-grid {
+  margin: 1.6rem 0 1.4rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.tm-intent-btn {
+  width: 100%;
+  text-align: left;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.9);
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+
+.tm-intent-btn:hover {
+  border-color: #facc15;
+  background: rgba(15, 23, 42, 1);
+  transform: translateY(-1px);
+}
+
+.tm-intent-btn__title {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.tm-intent-btn__desc {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.tm-intent-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+}
