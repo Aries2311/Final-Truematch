@@ -3,432 +3,227 @@
 <head>
   <script>window.API_BASE = '';</script>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TrueMatch • Sign in / Sign up</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>TrueMatch • Access</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="font.css" />
+  <link rel="stylesheet" href="style.css"> 
   <link rel="stylesheet" href="animations.css">
   <link rel="stylesheet" href="responsive.css">
   <link rel="stylesheet" href="auth.css">
 
-  <!-- Zero-flash guard: hide auth body if we arrived with ?verify=1 (we'll redirect instantly) -->
-  <script>
-  (function(){
-    try {
-      var usp = new URLSearchParams(location.search);
-      if (usp.get('verify') === '1') {
-        document.documentElement.classList.add('zero-flash');
-      }
-    } catch (e) {}
-  })();
-  </script>
-  <style>
-    .hidden{display:none !important;}
-    .auth-tabs{display:flex;gap:.5rem;margin:0 0 1rem 0;}
-    .auth-tab{
-      appearance:none;border:0;cursor:pointer;
-      padding:.5rem .75rem;border-radius:.5rem;
-      background:rgba(255,255,255,.06);color:#fff
-    }
-    .auth-tab.active{background:rgba(255,255,255,.18);font-weight:600}
-    .auth-pane{margin-top:.25rem}
-    .hint.small{opacity:.8;font-size:.9em}
-
-    /* ✅ IMPORTANT FIX: make sure the background canvas NEVER blocks clicks */
-    #tm-bg-canvas{
-      position:fixed;
-      inset:0;
-      width:100vw;
-      height:100vh;
-      z-index:0;
-      pointer-events:none; /* <-- this is the key */
-    }
-    .auth-header,
-    .auth-wrap{
-      position:relative;
-      z-index:2; /* content above canvas */
-    }
-
-    /* ✅ Zero-flash guard */
-    .zero-flash .auth-wrap { visibility:hidden; }
-
-    /* ✅ Email Verification Modal (glass/blur to blend with auth page) */
-    #dlgVerify{
-      width:min(560px, calc(100vw - 32px));
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:22px;
-      padding:0;
-      background:rgba(15,16,19,.72);
-      color:#fff;
-      box-shadow:
-        0 24px 80px rgba(0,0,0,.65),
-        inset 0 1px 0 rgba(255,255,255,.04);
-      backdrop-filter: blur(14px) saturate(1.15);
-      -webkit-backdrop-filter: blur(14px) saturate(1.15);
-      overflow:hidden;
-    }
-    #dlgVerify::backdrop{
-      background:
-        rgba(0,0,0,.58);
-    }
-    #dlgVerify .modal__body{
-      padding:22px 22px 18px;
-    }
-    #dlgVerify .modal__header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom:8px;
-    }
-    #dlgVerify .modal__header h3{
-      margin:0;
-      font-size:20px;
-      letter-spacing:.2px;
-    }
-    #dlgVerify .muted{
-      color:rgba(255,255,255,.72);
-    }
-    #dlgVerify .form-row{
-      margin-top:12px;
-    }
-    #dlgVerify .form-row label{
-      display:block;
-      margin-bottom:6px;
-      font-size:13px;
-      color:rgba(255,255,255,.78);
-    }
-    #dlgVerify .input{
-      width:100%;
-      background:rgba(0,0,0,.35);
-      border:1px solid rgba(255,255,255,.10);
-      color:#fff;
-      border-radius:14px;
-      padding:12px 14px;
-      outline:none;
-      letter-spacing:3px;
-    }
-    #dlgVerify .input:focus{
-      border-color:rgba(100,233,238,.45);
-      box-shadow:0 0 0 4px rgba(100,233,238,.12);
-    }
-    #dlgVerify .form-actions{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      margin-top:14px;
-      flex-wrap:wrap;
-    }
-    #dlgVerify .spacer{ flex:1; }
-    #dlgVerify .tiny{
-      font-size:12px;
-      opacity:.85;
-    }
-    /* Make buttons look buttery inside modal (won’t break your global btn styles) */
-    #dlgVerify .btn{
-      border-radius:999px;
-    }
-    #dlgVerify .btn.btn--ghost{
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
-      color:#fff;
-    }
-    #dlgVerify .btn.btn--primary{
-      color:#001011;
-      border:0;
-    }
-  </style>
-
-  <!-- Google Identity Services (optional, falls back to mock if CLIENT_ID missing) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>window.GOOGLE_CLIENT_ID = window.GOOGLE_CLIENT_ID || "";</script>
 </head>
 
-<body class="tm-dark has-bg-canvas">
-  <!-- Background canvas (same as landing) -->
+<body class="tm-dark">
+
   <canvas id="tm-bg-canvas" aria-hidden="true"></canvas>
 
-  <header class="auth-header">
-    <img src="assets/images/truematch-hero-logo.png" alt="TrueMatch" class="auth-logo">
-    <h1>Welcome to TrueMatch</h1>
-    <p>Sign in or create an account to continue.</p>
-  </header>
-
-  <main class="auth-wrap">
-    <div class="auth-card">
-
-      <!-- Tabs -->
-      <nav class="auth-tabs" aria-label="Authentication tabs">
-        <button type="button" class="auth-tab active" data-tab-btn="login" aria-controls="pane-login" aria-selected="true">Sign in</button>
-        <button type="button" class="auth-tab" data-tab-btn="signup" aria-controls="pane-signup" aria-selected="false">Sign up</button>
-      </nav>
-
-      <!-- Sign in pane -->
-      <section id="pane-login" class="auth-pane">
-        <form id="loginForm" autocomplete="off">
-          <label>
-            <span>Email</span>
-            <input type="email" name="email" id="loginEmail" placeholder="you@example.com" required>
-          </label>
-          <label>
-            <span>Password</span>
-            <input type="password" name="password" id="loginPass" minlength="6" placeholder="Your password" required>
-          </label>
-
-          <button class="btn btn-primary" type="submit">Sign in</button>
-
-          <div class="oauth-actions">
-            <!-- Google -->
-            <button type="button" id="btnGoogleLogin" class="btn oauth google" aria-label="Continue with Google">
-              <img
-                src="assets/images/google icon.png"
-                alt=""
-                aria-hidden="true"
-                style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:10px;"
-              />
-              Continue with Google
-            </button>
+  <nav class="auth-top-nav">
+    <a href="index.html" class="nav-brand">
+      <img src="assets/images/truematch-mark.png" alt="Logo" />
+      <span>TrueMatch</span>
+    </a>
+    <a href="index.html" class="nav-back-btn">
+      <span>BACK TO HOME</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </a>
+  </nav>
+  
+  <div class="split-layout">
+    
+    <div class="unified-card">
+      
+      <div class="auth-visual-side" id="visualSide">
+        <div class="visual-content" id="parallaxContent">
+          
+          <div class="chat-interface-wrapper">
+            <div class="chat-phone-body">
+              <div class="chat-header-ui">
+                <div class="chat-avatar">
+                  <img src="assets/images/truematch-mark.png" alt="Match" />
+                  <div class="online-dot"></div>
+                </div>
+                <div class="chat-info">
+                  <span class="chat-name">It's a Match!</span>
+                  <span class="chat-status">Active now</span>
+                </div>
+              </div>
+              <div class="chat-messages-area" id="chatContainer"></div>
+              <div class="reaction-layer" id="reactionLayer"></div>
+            </div>
+            
+            <div class="floating-badge badge-1"><span>🔥 Hot</span></div>
+            <div class="floating-badge badge-2"><span>💯 Verified</span></div>
           </div>
 
-          <p class="hint small">
-            By continuing you agree to our <a href="/#/terms">Terms</a> and <a href="/#/privacy">Privacy</a>.
-          </p>
+        </div>
+      </div>
 
-          <p class="hint">
-            Don’t have an account?
-            <a href="#" data-switch="signup">Create one</a>.
-          </p>
-        </form>
-      </section>
+      <div class="auth-form-side">
+        <header class="mobile-header">
+          <a href="index.html" class="brand">
+            <img src="assets/images/truematch-mark.png" alt="Logo" />
+            <span>TrueMatch</span>
+          </a>
+        </header>
 
-      <!-- Sign up pane -->
-      <section id="pane-signup" class="auth-pane hidden">
-        <form id="signupForm" autocomplete="off">
-          <label>
-            <span>Name</span>
-            <input type="text" name="name" id="signupName" placeholder="Your name">
-          </label>
-          <label>
-            <span>Email</span>
-            <input type="email" name="email" id="signupEmail" placeholder="you@example.com" required>
-          </label>
-          <label>
-            <span>Password</span>
-            <input type="password" name="password" id="signupPass" minlength="6" placeholder="Create a password" required>
-          </label>
+        <div class="flip-wrapper">
+          <div class="flip-card" id="authFlipCard">
+            
+            <div class="card-face front">
+              <div class="face-content">
+                <div class="auth-header">
+                  <h1>Welcome Back</h1>
+                  <p>Sign in to continue</p>
+                </div>
+                <form id="loginForm" autocomplete="off">
+                  <div class="input-group">
+                    <input type="email" id="loginEmail" name="email" required placeholder=" " />
+                    <label for="loginEmail">Email Address</label>
+                  </div>
+                  <div class="input-group">
+                    <input type="password" id="loginPass" name="password" required placeholder=" " minlength="6"/>
+                    <label for="loginPass">Password</label>
+                  </div>
+                  <div class="actions-row">
+                    <label class="remember-me"><input type="checkbox"> <span>Remember me</span></label>
+                    <a href="#" class="forgot-link">Forgot?</a>
+                  </div>
+                  <button type="submit" class="btn-primary neon-btn">Sign In</button>
+                  <div class="divider"><span>OR</span></div>
+                  <button type="button" id="btnGoogleLogin" class="btn-oauth">
+                    <img src="assets/images/google icon.png" alt="G"> Continue with Google
+                  </button>
+                </form>
+                <div class="switch-area">
+                  <p>Don't have an account?</p>
+                  <button type="button" id="toSignup" class="btn-switch" data-switch="signup">Create Account</button>
+                </div>
+              </div>
+            </div>
 
-          <button class="btn btn-primary" type="submit">Create account</button>
+            <div class="card-face back">
+              <div class="face-content">
+                <div class="auth-header">
+                  <h1>Join the Club</h1>
+                  <p>Apply for membership</p>
+                </div>
+                <form id="signupForm" autocomplete="off">
+                  <div class="input-group">
+                    <input type="text" id="signupName" name="name" required placeholder=" " />
+                    <label for="signupName">Full Name</label>
+                  </div>
+                  <div class="input-group">
+                    <input type="email" id="signupEmail" name="email" required placeholder=" " />
+                    <label for="signupEmail">Email Address</label>
+                  </div>
+                  <div class="input-group">
+                    <input type="password" id="signupPass" name="password" required placeholder=" " minlength="6"/>
+                    <label for="signupPass">Create Password</label>
+                  </div>
+                  <button type="submit" class="btn-primary neon-btn">Create Account</button>
+                  <p class="terms-micro">By joining, you agree to our <a href="#">Terms</a> & <a href="#">Privacy</a>.</p>
+                </form>
+                <div class="switch-area">
+                  <p>Already a member?</p>
+                  <button type="button" id="toLogin" class="btn-switch" data-switch="login">Sign In</button>
+                </div>
+              </div>
+            </div>
 
-          <p class="hint">
-            Already have an account?
-            <a href="#" data-switch="login">Sign in</a>.
-          </p>
-        </form>
-      </section>
+          </div>
+        </div>
+        
+        <footer class="simple-footer">© 2026 TrueMatch Inc.</footer>
+      </div>
 
-    </div>
-  </main>
+    </div> </div>
 
-  <!-- Shared background canvas particles (same as landing) -->
+  <div id="tm_loader_overlay"><div class="loader-spinner"></div></div>
+  <dialog id="dlgVerify" class="modal">
+    <form method="dialog" id="frmVerify" class="modal__body">
+      <h3>Verify Email</h3>
+      <p class="muted">Code sent to <b id="verifyEmailTxt"></b></p>
+      <input id="verifyCode" class="code-input" placeholder="000000" maxlength="6">
+      <div class="modal-actions">
+        <button type="button" id="btnResendCode" class="btn btn--ghost">Resend</button>
+        <div class="spacer"></div>
+        <button type="submit" class="btn-primary">Verify</button>
+        <button type="button" id="btnCloseVerify" class="btn-ghost">Close</button>
+      </div>
+    </form>
+  </dialog>
+
   <script>
   (() => {
     const canvas = document.getElementById('tm-bg-canvas');
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
-
     const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     const mouse = { x: 0, y: 0, active: false };
     const particles = [];
     let cw = 0, ch = 0, dpr = 1, raf = null;
-
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-
-    function pickCount() {
-      const area = window.innerWidth * window.innerHeight;
-      return clamp(Math.floor(area / 22000) + 28, 38, 90);
-    }
-
+    function pickCount() { return clamp(Math.floor((window.innerWidth * window.innerHeight) / 22000) + 28, 38, 90); }
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      cw = window.innerWidth;
-      ch = window.innerHeight;
-
-      canvas.width = Math.floor(cw * dpr);
-      canvas.height = Math.floor(ch * dpr);
-      canvas.style.width = cw + 'px';
-      canvas.style.height = ch + 'px';
-
+      cw = window.innerWidth; ch = window.innerHeight;
+      canvas.width = Math.floor(cw * dpr); canvas.height = Math.floor(ch * dpr);
+      canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      init();
-      draw(true);
+      init(); draw(true);
     }
-
     function init() {
-      particles.length = 0;
-      const count = pickCount();
+      particles.length = 0; const count = pickCount();
       for (let i = 0; i < count; i++) {
-        particles.push({
-          x: Math.random() * cw,
-          y: Math.random() * ch,
-          vx: (Math.random() - 0.5) * 0.35,
-          vy: (Math.random() - 0.5) * 0.35,
-          r: 1 + Math.random() * 1.3
-        });
+        particles.push({ x: Math.random() * cw, y: Math.random() * ch, vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35, r: 1 + Math.random() * 1.3 });
       }
     }
-
     function step() {
       for (const p of particles) {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0 || p.x > cw) p.vx *= -1;
-        if (p.y < 0 || p.y > ch) p.vy *= -1;
-
-        p.x = clamp(p.x, 0, cw);
-        p.y = clamp(p.y, 0, ch);
-
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > cw) p.vx *= -1; if (p.y < 0 || p.y > ch) p.vy *= -1;
         if (mouse.active) {
-          const dx = p.x - mouse.x;
-          const dy = p.y - mouse.y;
-          const dist2 = dx * dx + dy * dy;
-          const influence = 220;
-          if (dist2 < influence * influence && dist2 > 0.001) {
-            const dist = Math.sqrt(dist2);
-            const force = (1 - dist / influence) * 0.035;
-            p.vx += (dx / dist) * force;
-            p.vy += (dy / dist) * force;
+          const dx = p.x - mouse.x; const dy = p.y - mouse.y; const dist2 = dx * dx + dy * dy;
+          if (dist2 < 48400 && dist2 > 0.001) {
+             const dist = Math.sqrt(dist2); const force = (1 - dist / 220) * 0.035;
+             p.vx += (dx / dist) * force; p.vy += (dy / dist) * force;
           }
         }
-
-        p.vx *= 0.985;
-        p.vy *= 0.985;
+        p.vx *= 0.985; p.vy *= 0.985;
       }
     }
-
     function draw(isStatic = false) {
-      ctx.clearRect(0, 0, cw, ch);
-      ctx.globalCompositeOperation = 'lighter';
-
-      const maxDist = 150;
-      const maxDist2 = maxDist * maxDist;
-
+      ctx.clearRect(0, 0, cw, ch); ctx.globalCompositeOperation = 'lighter';
       for (let i = 0; i < particles.length; i++) {
         const a = particles[i];
         for (let j = i + 1; j < particles.length; j++) {
-          const b = particles[j];
-          const dx = a.x - b.x;
-          const dy = a.y - b.y;
-          const d2 = dx * dx + dy * dy;
-
-          if (d2 <= maxDist2) {
-            const t = 1 - (Math.sqrt(d2) / maxDist);
-            const alpha = t * 0.12;
-            ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
+          const b = particles[j]; const dx = a.x - b.x; const dy = a.y - b.y; const d2 = dx * dx + dy * dy;
+          if (d2 <= 22500) {
+            const alpha = (1 - (Math.sqrt(d2) / 150)) * 0.12;
+            ctx.strokeStyle = `rgba(255,255,255,${alpha})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
           }
         }
       }
-
-      if (mouse.active) {
-        const md = 210;
-        const md2 = md * md;
-
-        for (const p of particles) {
-          const dx = p.x - mouse.x;
-          const dy = p.y - mouse.y;
-          const d2 = dx * dx + dy * dy;
-          if (d2 < md2) {
-            const t = 1 - (Math.sqrt(d2) / md);
-            const alpha = t * 0.18;
-            ctx.strokeStyle = `rgba(100,233,238,${alpha})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(mouse.x, mouse.y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      for (const p of particles) {
-        ctx.fillStyle = `rgba(255,255,255,0.55)`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
+      for (const p of particles) { ctx.fillStyle = `rgba(255,255,255,0.55)`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
       ctx.globalCompositeOperation = 'source-over';
-
       if (!reduceMotion && !isStatic) step();
     }
-
-    function loop() {
-      draw(false);
-      raf = requestAnimationFrame(loop);
-    }
-
-    function onMove(e) {
-      const x = (e.touches ? e.touches[0].clientX : e.clientX);
-      const y = (e.touches ? e.touches[0].clientY : e.clientY);
-      mouse.x = x;
-      mouse.y = y;
-      mouse.active = true;
-    }
-
-    function onLeave() { mouse.active = false; }
-
-    window.addEventListener('resize', () => {
-      cancelAnimationFrame(raf);
-      raf = null;
-      resize();
-      if (!reduceMotion) loop();
-    }, { passive: true });
-
-    window.addEventListener('mousemove', onMove, { passive: true });
-    window.addEventListener('touchstart', onMove, { passive: true });
-    window.addEventListener('touchmove', onMove, { passive: true });
-    window.addEventListener('mouseleave', onLeave, { passive: true });
-    window.addEventListener('touchend', onLeave, { passive: true });
-
-    resize();
-    if (!reduceMotion) loop();
+    function loop() { draw(false); raf = requestAnimationFrame(loop); }
+    window.addEventListener('resize', () => { cancelAnimationFrame(raf); resize(); if (!reduceMotion) loop(); }, {passive:true});
+    window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
+    resize(); if (!reduceMotion) loop();
   })();
   </script>
 
-  <!-- Email Verification Modal -->
-  <dialog id="dlgVerify" class="modal">
-    <form method="dialog" id="frmVerify" class="modal__body">
-      <header class="modal__header">
-        <h3>Verify your email</h3>
-      </header>
-
-      <p id="verifyIntro" class="muted">We sent a 6-digit code to <b id="verifyEmailTxt"></b>. Enter it below to verify your account.</p>
-
-      <div class="form-row">
-        <label for="verifyCode">Verification code</label>
-        <input id="verifyCode" name="code" inputmode="numeric" pattern="\d{6}" maxlength="6" placeholder="123456" required class="input"/>
-      </div>
-
-      <div class="form-actions">
-        <button type="button" id="btnResendCode" class="btn btn--ghost">Resend code</button>
-        <div class="spacer"></div>
-        <button type="submit" class="btn btn--primary">Verify</button>
-        <button type="button" id="btnCloseVerify" class="btn">Close</button>
-      </div>
-
-      <p id="verifyMsg" class="tiny muted" style="margin-top:8px;"></p>
-    </form>
-  </dialog>
-
-  <script src="./tm-loader.js"></script>
-  <script type="module" src="./auth.js"></script>
+  <script src="tm-loader.js"></script>
+  <script type="module" src="auth.js"></script>
 </body>
 </html>
