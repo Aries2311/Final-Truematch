@@ -32,7 +32,12 @@ body.tm-dark {
   position: absolute; top: 0; left: 0; width: 100%;
   padding: 30px 50px; display: flex; justify-content: space-between; align-items: flex-start;
   z-index: 100; pointer-events: none;
+  
+  /* HEADER ENTRANCE ANIMATION */
+  opacity: 0;
+  animation: fadeInDown 0.8s ease-out forwards;
 }
+
 .nav-brand {
   display: flex; align-items: center; gap: 12px;
   text-decoration: none; color: #fff;
@@ -55,7 +60,7 @@ body.tm-dark {
 }
 
 /* ============================
-   THE UNIFIED CARD (New Wrapper)
+   THE UNIFIED CARD
    ============================ */
 .unified-card {
   display: flex;
@@ -63,18 +68,19 @@ body.tm-dark {
   max-width: 1000px;
   height: 720px;
   
-  /* THIS IS THE MAIN GLASS BACKGROUND */
   background: rgba(13, 20, 35, 0.85);
   backdrop-filter: blur(30px);
   border: 1px solid rgba(100, 233, 238, 0.3);
   border-radius: 40px;
   box-shadow: 0 0 40px rgba(100, 233, 238, 0.15), inset 0 0 30px rgba(100, 233, 238, 0.05);
   
-  /* BREATHING BORDER ANIMATION FOR THE WHOLE CARD */
-  animation: breatheBorder 4s infinite alternate;
+  /* Breathing Animation */
+  animation: breatheBorder 4s infinite alternate, cardEntrance 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   
   position: relative;
   overflow: hidden;
+  opacity: 0; /* Start hidden for entrance */
+  transform: scale(0.95);
 }
 
 @keyframes breatheBorder {
@@ -82,7 +88,10 @@ body.tm-dark {
   100% { border-color: rgba(100, 233, 238, 0.7); box-shadow: 0 0 60px rgba(100, 233, 238, 0.25); }
 }
 
-/* Vertical Divider in the Middle */
+@keyframes cardEntrance {
+  to { opacity: 1; transform: scale(1); }
+}
+
 .unified-card::after {
   content: ''; position: absolute; left: 50%; top: 10%; bottom: 10%; width: 1px;
   background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1), transparent);
@@ -95,15 +104,19 @@ body.tm-dark {
   width: 50%; 
   position: relative; 
   display: flex; align-items: center; justify-content: center;
-  background: transparent; /* Transparent inner */
+  background: transparent;
   perspective: 1000px;
+  
+  /* LEFT SIDE ENTRANCE ANIMATION (Slide from Left) */
+  opacity: 0;
+  animation: slideInLeft 1s ease-out 0.2s forwards;
 }
 
 .visual-content { position: relative; z-index: 5; text-align: center; width: 100%; padding: 0; }
 
 .chat-interface-wrapper {
   position: relative; z-index: 10;
-  width: 360px; /* Slightly smaller to fit nicely inside unified card */
+  width: 360px;
   height: 620px;
   transition: transform 0.1s ease-out;
   margin: 0 auto;
@@ -111,7 +124,7 @@ body.tm-dark {
 
 .chat-phone-body {
   width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.4); /* Darker overlay for phone contrast */
+  background: rgba(0, 0, 0, 0.4); 
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 40px; 
   box-shadow: 0 20px 50px rgba(0,0,0,0.5);
@@ -175,12 +188,11 @@ body.tm-dark {
 }
 .mobile-header { display: none; margin-bottom: 30px; }
 
-/* Flip Wrapper fits nicely inside the unified card right half */
 .flip-wrapper {
   perspective: 2000px; 
   width: 100%; 
-  max-width: 420px; /* Fitting width */
-  height: 600px; /* Fitting height */
+  max-width: 420px; 
+  height: 600px; 
   position: relative; 
   z-index: 10; 
 }
@@ -188,20 +200,94 @@ body.tm-dark {
 .flip-card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .flip-card.flipped { transform: rotateY(180deg); }
 
-/* Transparent Faces - The Unified Card provides the BG */
 .card-face {
   position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  background: transparent; /* TRANSPARENT NOW */
+  background: transparent; 
   border: none;
   box-shadow: none;
   padding: 20px 30px;
   display: flex; flex-direction: column; justify-content: center;
-  /* Cursor to indicate flip interaction */
-  cursor: pointer;
+  cursor: auto; /* Changed from pointer to prevent confusion */
 }
 .card-face.back { transform: rotateY(180deg); }
 
-/* FORM STYLING */
+/* --- STAGGERED ENTRANCE ANIMATIONS FOR FORM --- */
+
+/* Keyframes for Staggered Entrance */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Staggered Delays for Login/Signup Contents */
+/* Header */
+.face-content .auth-header {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.3s forwards;
+}
+
+/* Input Fields Sequence */
+.face-content form .input-group:nth-child(1) {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.4s forwards;
+}
+.face-content form .input-group:nth-child(2) {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.5s forwards;
+}
+.face-content form .input-group:nth-child(3) {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.6s forwards;
+}
+
+/* Actions Row (Remember me / Forgot) */
+.face-content .actions-row {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.65s forwards;
+}
+
+/* Main Button */
+.face-content .btn-primary {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.7s forwards;
+}
+
+/* Terms Micro text */
+.face-content .terms-micro {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.75s forwards;
+}
+
+/* Divider */
+.face-content .divider {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.8s forwards;
+}
+
+/* OAuth Button */
+.face-content .btn-oauth {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 0.9s forwards;
+}
+
+/* Switch Area (Bottom Link) */
+.face-content .switch-area {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease-out 1s forwards;
+}
+
+
+/* FORM STYLING (Existing) */
 .auth-header { text-align: center; margin-bottom: 30px; }
 .auth-header h1 { font-size: 2.2rem; margin: 0 0 8px; color: #fff; text-shadow: 0 0 15px rgba(100,233,238,0.5); font-weight: 800; }
 .auth-header p { color: #94a3b8; font-size: 1rem; margin: 0; font-weight: 500; }
