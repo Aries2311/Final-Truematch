@@ -14,6 +14,14 @@ const cookieParser = require('cookie-parser');
 let OAuth2Client = null;
 try { OAuth2Client = require('google-auth-library').OAuth2Client; } catch (e) { OAuth2Client = null; }
 
+
+// Google Sheets (Opt-in) (lazy)
+let google = null;
+try {
+  ({ google } = require('googleapis'));
+} catch (e) {
+  google = null;
+}
 // ---------------- Basic server setup ----------------
 const app = express();
 
@@ -361,6 +369,123 @@ app.get('/api/config', (req, res) => {
     googleClientId: process.env.GOOGLE_CLIENT_ID || ''
   });
 });
+
+
+// ---------------- Opt-in endpoint (Google Sheets) ----------------
+// Store opt-in form submissions in a Google Sheet using a Service Account.
+// Requirements:
+// - Put service_account.json inside /backend (or set GOOGLE_SERVICE_ACCOUNT_PATH)
+// - Install dependency: npm i googleapis
+// - Share your Google Sheet with the service account email (Editor)
+// Optional .env:
+// OPTIN_SHEET_ID=...
+// OPTIN_SHEET_TAB=Sheet1
+
+const OPTIN_SHEET_ID = (process.env.OPTIN_SHEET_ID || '1NePToYP64nTs-DyILE5B_G8Ns-LSL2a9rI0M_FsGzjc').trim();
+const OPTIN_SHEET_TAB = (process.env.OPTIN_SHEET_TAB || 'Hoja 1').trim();
+const GOOGLE_SERVICE_ACCOUNT_PATH = process.env.GOOGLE_SERVICE_ACCOUNT_PATH || path.join(__dirname, 'service_account.json');
+
+let _optinSheetsClient = null;
+
+function _normalizeIgHandle(h) {
+  const s = String(h || '').trim();
+  if (!s) return '';
+  return s.startsWith('@') ? s.slice(1) : s;
+}
+
+function _loadServiceAccountJson() {
+  try {
+    const raw = fs.readFileSync(GOOGLE_SERVICE_ACCOUNT_PATH, 'utf8');
+    const sa = JSON.parse(raw);
+    if (!sa.client_email || !sa.private_key) return null;
+    return sa;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _getOptinSheetsClient() {
+  if (_optinSheetsClient) return _optinSheetsClient;
+
+  if (!google) {
+    throw new Error('googleapis_not_installed');
+  }
+
+  const sa = _loadServiceAccountJson();
+  if (!sa) {
+    throw new Error('service_account_missing');
+  }
+
+  const scopes = ['https://www.googleapis.com/auth/spreadsheets'];
+  const auth = new google.auth.JWT(sa.client_email, null, sa.private_key, scopes);
+  _optinSheetsClient = google.sheets({ version: 'v4', auth });
+  return _optinSheetsClient;
+}
+
+async function _appendOptinToSheet(rowValues) {
+  const sheets = await _getOptinSheetsClient();
+  const range = `${OPTIN_SHEET_TAB}!A:Z`;
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: OPTIN_SHEET_ID,
+    range,
+    valueInputOption: 'USER_ENTERED',
+    insertDataOption: 'INSERT_ROWS',
+    requestBody: { values: [rowValues] }
+  });
+}
+
+app.post('/api/optin', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const igHandleRaw = body.igHandle || body.ig_handle || '';
+    const email = String(body.email || '').trim();
+    const city = String(body.city || '').trim();
+    const ageRange = String(body.ageRange || '').trim();
+    const intent = String(body.intent || '').trim();
+    const note = String(body.note || '').trim();
+    const updates = !!body.updates;
+    const source = String(body.source || '').trim();
+
+    const igHandle = _normalizeIgHandle(igHandleRaw);
+
+    if (!igHandle || !email) {
+      return res.status(400).json({ ok: false, message: 'Missing required fields.' });
+    }
+
+    const ts = new Date().toISOString();
+    const ua = String(req.get('user-agent') || '').slice(0, 250);
+    const ip = String(req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+
+    // Columns:
+    // timestamp, ig_handle, email, city, age_range, intent, note, updates, source, ip, user_agent
+    const row = [ts, igHandle, email, city, ageRange, intent, note, updates ? 'yes' : 'no', source, ip, ua];
+
+    await _appendOptinToSheet(row);
+
+    return res.json({ ok: true });
+  } catch (err) {
+    const msg = String(err && err.message ? err.message : err);
+
+    if (msg.includes('googleapis_not_installed')) {
+      return res.status(500).json({
+        ok: false,
+        message: 'Server missing dependency "googleapis". Run: npm i googleapis (inside backend).'
+      });
+    }
+
+    if (msg.includes('service_account_missing')) {
+      return res.status(500).json({
+        ok: false,
+        message: 'Missing/invalid service_account.json. Put it in /backend or set GOOGLE_SERVICE_ACCOUNT_PATH.'
+      });
+    }
+
+    console.error('[OPTIN] Failed to save opt-in:', err);
+    return res.status(500).json({ ok: false, message: 'Failed to save opt-in.' });
+  }
+});
+
 
 
 // ---------------- Admin access (simple secret key) ----------------
