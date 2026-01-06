@@ -8,7 +8,7 @@ const fs = require('fs');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const cookieParser = require('cookie-parser');
-
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 // Google OAuth token verifier (lazy)
 let OAuth2Client = null;
@@ -249,7 +249,7 @@ const DEMO_PASSWORD = 'aries2311';
 
 // 🔹 DEV-only bypass demo accounts (for multi-user testing)
 // Enable with: ALLOW_TEST_BYPASS=true (and keep NODE_ENV != 'production')
-const ALLOW_TEST_BYPASS = String(process.env.ALLOW_TEST_BYPASS || '').toLowerCase() === 'true';
+const ALLOW_TEST_BYPASS = !IS_PROD && (process.env.ALLOW_TEST_BYPASS === '1');
 
 const TEST_BYPASS_ACCOUNTS = {
   "demo1@truematch.app": {
