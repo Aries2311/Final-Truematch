@@ -1,304 +1,289 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="tm-premium">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>TrueMatch • Premium Society</title>
 
-  <!-- Match your existing stack -->
-  <link rel="stylesheet" href="fonts.css">
-  <link rel="stylesheet" href="animations.css">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="responsive.css">
-  <link rel="stylesheet" href="dashboard.css">
-
-  <!-- Page-specific -->
-  <link rel="stylesheet" href="premium-society.css">
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <script src="https://kit.fontawesome.com/5e3a761cdf.js" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="animations.css">
+  <link rel="stylesheet" href="premium-society.css">
 </head>
 
 <body class="tm-page">
-  <!-- Background -->
-  <canvas id="bg-network"></canvas>
 
-  <header class="tm-topbar">
-    <a class="tm-brand" href="dashboard.html" aria-label="Back to dashboard">
-      <span class="tm-brand__mark">M</span>
-      <span class="tm-brand__text">TRUEMATCH</span>
-    </a>
+  <canvas id="tm-bg-canvas"></canvas>
 
-    <div class="tm-topbar__actions">
-      <a class="tm-link" href="dashboard.html">Dashboard</a>
-      <button id="btnBack" class="btn btn--ghost" type="button">
-        <i class="fa-solid fa-arrow-left"></i>
-        Back
-      </button>
-    </div>
-  </header>
-
-  <main class="premium-shell">
-    <section class="premium-hero">
-      <div class="premium-hero__copy">
-        <h1 class="premium-title">Premium Society</h1>
-        <p class="premium-subtitle">
-          Vetted membership for people who want higher-trust matches, concierge-level introductions, and a quieter network.
-        </p>
-
-        <div class="premium-pill-row">
-          <span class="premium-pill" id="pillStatus">Checking status…</span>
-          <span class="premium-pill premium-pill--muted" id="pillPlan">Plan: —</span>
-        </div>
+  <div class="dashboard-layout">
+    
+    <aside class="dashboard-sidebar">
+      
+      <div class="sidebar-brand">
+        <img src="assets/images/truematch-mark.png" alt="TrueMatch" class="brand__logo" />
+        <span class="brand__name">TRUEMATCH</span>
       </div>
 
-      <div class="premium-hero__grid">
-        <div class="premium-card">
-          <div class="premium-card__icon"><i class="fa-solid fa-user-shield"></i></div>
-          <div class="premium-card__title">Verified Network</div>
-          <div class="premium-card__text">More signal, less noise. We prioritize quality and intent.</div>
-        </div>
-        <div class="premium-card">
-          <div class="premium-card__icon"><i class="fa-solid fa-handshake-angle"></i></div>
-          <div class="premium-card__title">Concierge Intros</div>
-          <div class="premium-card__text">Curated introductions with higher compatibility screening.</div>
-        </div>
-        <div class="premium-card">
-          <div class="premium-card__icon"><i class="fa-solid fa-calendar-check"></i></div>
-          <div class="premium-card__title">Priority Scheduling</div>
-          <div class="premium-card__text">Faster matchmaking iterations and better date coordination.</div>
-        </div>
-        <div class="premium-card">
-          <div class="premium-card__icon"><i class="fa-solid fa-lock"></i></div>
-          <div class="premium-card__title">Private Community</div>
-          <div class="premium-card__text">Access to members-only rooms, drops, and events (as you build this out).</div>
-        </div>
-      </div>
-    </section>
+      <div class="sidebar-header">PREMIUM SOCIETY</div>
 
-    <!-- Loading -->
-    <section id="stateLoading" class="premium-state">
-      <div class="premium-state__box">
-        <div class="premium-state__title">Loading</div>
-        <div class="premium-state__text">Fetching your Premium Society status…</div>
-      </div>
-    </section>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <button class="nav-tab active" id="tabOverview" onclick="switchView('overview')">
+          <div class="tab-icon"><i class="fa-solid fa-layer-group"></i></div>
+          <div class="tab-text">Overview</div>
+        </button>
 
-    <!-- Locked -->
-    <section id="stateLocked" class="premium-state" hidden>
-      <div class="premium-state__box">
-        <div class="premium-state__title">Apply for access</div>
-        <div class="premium-state__text">
-          Premium Society is application-based. Submit your details and we’ll review your request.
-        </div>
+        <button class="nav-tab" id="tabApply" onclick="switchView('apply')">
+          <div class="tab-icon"><i class="fa-solid fa-file-signature"></i></div>
+          <div class="tab-text">Application</div>
+        </button>
 
-        <div class="premium-actions">
-          <button id="btnApply" class="btn btn--primary" type="button">
-            <i class="fa-solid fa-pen-to-square"></i>
-            Apply now
-          </button>
+        <button class="nav-tab" id="tabReview" onclick="switchView('review')">
+          <div class="tab-icon"><i class="fa-solid fa-hourglass-start"></i></div>
+          <div class="tab-text">Status</div>
+        </button>
 
-          <a class="btn btn--ghost" href="creators.html">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-            Go to Creator Space
-          </a>
-        </div>
+        <button class="nav-tab" id="tabLounge" onclick="switchView('lounge')">
+          <div class="tab-icon"><i class="fa-solid fa-gem"></i></div>
+          <div class="tab-text">The Lounge</div>
+        </button>
+      </nav>
 
-        <div class="premium-note">
-          Note: This uses your backend flow (<code>/api/me/premium/apply</code>).
-        </div>
-      </div>
-    </section>
-
-    <!-- Pending -->
-    <section id="statePending" class="premium-state" hidden>
-      <div class="premium-state__box">
-        <div class="premium-state__title">Application submitted</div>
-        <div class="premium-state__text">
-          Your request is under review. You’ll get access once an admin approves your application.
-        </div>
-
-        <div class="premium-kv">
-          <div><span class="muted">Status</span><br><strong id="pendingStatus">Pending</strong></div>
-          <div><span class="muted">Submitted</span><br><strong id="pendingWhen">—</strong></div>
-        </div>
-
-        <div class="premium-actions">
-          <button id="btnRefresh" class="btn btn--ghost" type="button">
-            <i class="fa-solid fa-rotate"></i>
-            Refresh status
-          </button>
-          <a class="btn btn--primary" href="dashboard.html">
-            <i class="fa-solid fa-grid-2"></i>
-            Back to Dashboard
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- Approved -->
-    <section id="stateApproved" class="premium-state" hidden>
-      <div class="premium-state__box premium-state__box--wide">
-        <div class="premium-state__title">Welcome to Premium Society</div>
-        <div class="premium-state__text">
-          You’re approved. This is your members-only lounge area (expand later with real features).
-        </div>
-
-        <div class="premium-lounge-grid">
-          <div class="premium-panel">
-            <div class="premium-panel__title">Concierge Requests</div>
-            <div class="premium-panel__text">
-              Tell the concierge what you want and we’ll curate intros (future: connect to your messaging system).
-            </div>
-            <textarea id="txtConcierge" class="premium-textarea" rows="5" placeholder="Example: I’m in Madrid this month. Looking for a serious relationship, 25–32, active lifestyle."></textarea>
-            <div class="premium-actions premium-actions--right">
-              <button id="btnSendConcierge" class="btn btn--primary" type="button">
-                <i class="fa-solid fa-paper-plane"></i>
-                Send request
-              </button>
-            </div>
-            <div class="premium-hint">For now this button just stores the draft locally (no backend endpoint yet).</div>
+      <div class="sidebar-foot">
+        <div class="profile-wrapper">
+          
+          <div class="profile-menu" id="profileMenu">
+            <a href="profile.html" class="menu-link"><i class="fa-solid fa-user"></i> Profile</a>
+            <div class="menu-divider"></div>
+            <a href="dashboard.html" class="menu-link"><i class="fa-solid fa-grid-2"></i> Dashboard</a>
+            <a href="creators.html" class="menu-link"><i class="fa-solid fa-wand-magic-sparkles"></i> Creators</a>
           </div>
 
-          <div class="premium-panel">
-            <div class="premium-panel__title">Your Benefits</div>
-            <ul class="premium-list">
-              <li>Higher-trust matches and stronger filtering</li>
-              <li>Concierge-level introductions (manual / curated)</li>
-              <li>Priority date coordination (as you wire this to your scheduling)</li>
-              <li>Access to members-only drops and events (when you add them)</li>
-            </ul>
-
-            <div class="premium-divider"></div>
-
-            <div class="premium-actions">
-              <a class="btn btn--ghost" href="creators.html">
-                <i class="fa-solid fa-star"></i>
-                Creator Space
-              </a>
-              <a class="btn btn--primary" href="dashboard.html">
-                <i class="fa-solid fa-grid-2"></i>
-                Dashboard
-              </a>
+          <button class="profile-btn" id="btnProfileToggle">
+            <div class="btn-user">
+              <div class="user-avatar-placeholder"><i class="fa-solid fa-user"></i></div>
+              <span>My Account</span>
             </div>
-          </div>
+            <i class="fa-solid fa-chevron-up chevron"></i>
+          </button>
         </div>
       </div>
-    </section>
+    </aside>
 
-    <!-- Apply dialog -->
-    <dialog id="dlgPremiumApply" class="tm-dialog">
-      <form id="frmPremiumApply" class="tm-dialog__body" method="dialog">
-        <div class="tm-dialog__head">
-          <div>
-            <div class="tm-dialog__title">Premium Society application</div>
-            <div class="tm-dialog__subtitle">Submit accurate details so admins can review faster.</div>
+    <main class="dashboard-main">
+      
+      <header class="dashboard-header reveal-down is-visible">
+        <div class="header-title" id="pageTitle">Overview</div>
+        <div class="header-actions">
+           <button id="btnBack" class="btn btn--ghost btn--sm">
+             <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+           </button>
+        </div>
+      </header>
+
+      <div class="dashboard-content-scroll">
+        <div class="premium-shell">
+
+          <div id="globalLoader" class="view-section active">
+             <div class="spinner-box">
+               <div class="custom-loader"></div>
+               <p>Syncing membership data...</p>
+             </div>
           </div>
-          <button id="btnDlgClose" class="tm-icon-btn" type="button" aria-label="Close">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+
+          <div id="viewOverview" class="view-section" hidden>
+            <section class="premium-hero">
+              <div class="premium-hero__copy reveal-up is-visible">
+                <div class="pill">Exclusive Access</div>
+                <h1 class="premium-title">The <span class="highlight">Premium</span> Society</h1>
+                <p class="premium-subtitle">
+                  Vetted membership for high-value individuals. Unlock concierge introductions and priority matching.
+                </p>
+                <div class="hero-cta">
+                  <button class="btn btn--primary" onclick="switchView('apply')" id="btnHeroApply">
+                    Apply for Access
+                  </button>
+                  <p class="hero-note">Already verified? Go to <a href="#" onclick="switchView('lounge')">The Lounge</a></p>
+                </div>
+              </div>
+              
+              <div class="premium-hero__grid reveal-up reveal-delay-200 is-visible">
+                <div class="bento-card">
+                  <div class="bento-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                  <h3>Verified Only</h3>
+                  <p>Strict vetting ensures high intent and safety.</p>
+                </div>
+                <div class="bento-card">
+                  <div class="bento-icon"><i class="fa-solid fa-bell-concierge"></i></div>
+                  <h3>Concierge</h3>
+                  <p>Hand-picked matches tailored to you.</p>
+                </div>
+                <div class="bento-card">
+                  <div class="bento-icon"><i class="fa-solid fa-fingerprint"></i></div>
+                  <h3>Private</h3>
+                  <p>Members-only access and events.</p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div id="viewApply" class="view-section" hidden>
+             <div class="form-container glass-panel reveal-up">
+               <h2 class="section-title">Membership Application</h2>
+               <p class="section-desc">Join the waitlist. We review every profile manually.</p>
+               
+               <form id="frmPremiumApply">
+                 <div class="tm-form-grid">
+                   <label class="tm-field reveal-up reveal-delay-100">
+                     <span>Full Name</span><input id="fullName" class="tm-input" required placeholder="e.g. Alex Doe" />
+                   </label>
+                   <label class="tm-field reveal-up reveal-delay-100">
+                     <span>Age</span><input id="age" type="number" class="tm-input" min="18" required placeholder="18+" />
+                   </label>
+                   <label class="tm-field reveal-up reveal-delay-200">
+                     <span>Occupation</span><input id="occupation" class="tm-input" required placeholder="e.g. Architect" />
+                   </label>
+                   <label class="tm-field reveal-up reveal-delay-200">
+                     <span>Financial Status</span>
+                     <select id="finance" class="tm-input" required>
+                       <option value="" disabled selected>Select Status...</option>
+                       <option value="stable">Stable Income</option>
+                       <option value="high_income">High Income</option>
+                       <option value="wealthy">Wealthy / HNW</option>
+                       <option value="other">Prefer not to say</option>
+                     </select>
+                   </label>
+                 </div>
+                 
+                 <div class="form-actions reveal-up reveal-delay-300">
+                   <button type="submit" id="btnSubmitApply" class="btn btn--primary full-width">
+                     Submit Application
+                   </button>
+                 </div>
+                 <div id="applyError" class="tm-error" hidden></div>
+               </form>
+             </div>
+          </div>
+
+          <div id="viewReview" class="view-section" hidden>
+             <div class="status-box glass-panel reveal-up">
+               <div class="status-icon-ring pending reveal-up"><i class="fa-solid fa-clock"></i></div>
+               <h2 class="status-title reveal-up reveal-delay-100">Under Review</h2>
+               <p class="status-text reveal-up reveal-delay-100">
+                 We have received your application. Our team is currently verifying your credentials.
+               </p>
+               <div class="status-details reveal-up reveal-delay-200">
+                 <div class="kv-row"><span>Current Status</span> <strong class="color-pending">Pending</strong></div>
+                 <div class="kv-row"><span>Date Submitted</span> <strong id="pendingWhen">-</strong></div>
+               </div>
+               <button class="btn btn--ghost reveal-up reveal-delay-300" id="btnRefresh">
+                 <i class="fa-solid fa-rotate-right"></i> Check for Updates
+               </button>
+             </div>
+          </div>
+
+          <div id="viewLounge" class="view-section" hidden>
+            <div class="lounge-container">
+               <div class="lounge-header reveal-down">
+                 <div><h2>The Lounge</h2><p class="muted">Members-only concierge & benefits.</p></div>
+                 <div class="badge-premium"><i class="fa-solid fa-crown"></i> MEMBER</div>
+               </div>
+
+               <div class="premium-lounge-grid">
+                 <div class="premium-panel glass-panel reveal-left">
+                   <div class="panel-head"><div class="bento-icon"><i class="fa-solid fa-feather-pointed"></i></div><h3>Concierge Request</h3></div>
+                   <p class="panel-desc">Tell us what you're looking for or request a date plan.</p>
+                   <textarea id="txtConcierge" class="premium-textarea" rows="4" placeholder="Type your request here..."></textarea>
+                   <div class="align-right"><button id="btnSendConcierge" class="btn btn--primary">Send Request</button></div>
+                 </div>
+
+                 <div class="premium-panel glass-panel reveal-right">
+                   <div class="panel-head"><div class="bento-icon"><i class="fa-solid fa-star"></i></div><h3>Active Privileges</h3></div>
+                   <ul class="premium-list">
+                     <li><i class="fa-solid fa-check-circle"></i> Unlimited Matching</li>
+                     <li><i class="fa-solid fa-check-circle"></i> Verified Profile Badge</li>
+                     <li><i class="fa-solid fa-check-circle"></i> Priority Support</li>
+                     <li><i class="fa-solid fa-check-circle"></i> Exclusive Event Access</li>
+                   </ul>
+                 </div>
+               </div>
+            </div>
+          </div>
+
         </div>
+      </div>
+    </main>
+  </div>
 
-        <div class="tm-form-grid">
-          <label class="tm-field">
-            <span class="tm-field__label">Full name</span>
-            <input id="fullName" name="fullName" class="tm-input" placeholder="e.g. Juan Dela Cruz" required />
-          </label>
-
-          <label class="tm-field">
-            <span class="tm-field__label">Age</span>
-            <input id="age" name="age" type="number" class="tm-input" min="18" max="99" placeholder="e.g. 28" required />
-          </label>
-
-          <label class="tm-field">
-            <span class="tm-field__label">Occupation</span>
-            <input id="occupation" name="occupation" class="tm-input" placeholder="e.g. Software Engineer" required />
-          </label>
-
-          <label class="tm-field">
-            <span class="tm-field__label">Financial situation</span>
-            <select id="finance" name="finance" class="tm-input" required>
-              <option value="" selected disabled>Select one</option>
-              <option value="stable">Stable income</option>
-              <option value="high_income">High income</option>
-              <option value="wealthy">Wealthy / HNW</option>
-              <option value="other">Prefer not to say</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="tm-dialog__foot">
-          <button id="btnSubmitApply" class="btn btn--primary" type="submit">
-            Submit application
-          </button>
-          <button id="btnCancelApply" class="btn btn--ghost" type="button">
-            Cancel
-          </button>
-        </div>
-
-        <div id="applyError" class="tm-error" hidden></div>
-      </form>
-    </dialog>
-  </main>
+  <dialog id="dlgPremiumApply" class="tm-dialog glass-panel">
+    <form id="frmPremiumApplyModal" method="dialog" class="dialog-content">
+      <p>Please use the Application tab.</p>
+      <button class="btn btn--ghost" type="button" id="btnDlgClose">Close</button>
+    </form>
+  </dialog>
 
   <script type="module" src="premium-society.js"></script>
 
-  <!-- Animated background -->
   <script>
-    const canvas = document.getElementById('bg-network');
-    const ctx = canvas.getContext('2d');
-
-    let w, h, particles = [];
+  (() => {
+    const canvas = document.getElementById('tm-bg-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    let cw, ch, particles = [];
+    
     function resize() {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
+      cw = canvas.width = window.innerWidth;
+      ch = canvas.height = window.innerHeight;
+      canvas.width = cw; canvas.height = ch;
+      init();
     }
-    window.addEventListener('resize', resize);
-    resize();
-
-    for (let i = 0; i < 80; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.6,
-        vy: (Math.random() - 0.5) * 0.6
-      });
+    
+    function init() {
+      particles = [];
+      const count = Math.floor((cw * ch) / 25000);
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * cw,
+          y: Math.random() * ch,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          r: Math.random() * 1.5 + 0.5
+        });
+      }
     }
-
+    
     function animate() {
-      ctx.clearRect(0, 0, w, h);
-
-      particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0 || p.x > w) p.vx *= -1;
-        if (p.y < 0 || p.y > h) p.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
-        ctx.fillStyle = "#00c0ff";
-        ctx.fill();
-      });
-
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.strokeStyle = 'rgba(100, 233, 238, 0.15)'; 
+      ctx.lineWidth = 0.5;
+      
       for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy;
+        
+        if (p.x < 0 || p.x > cw) p.vx *= -1;
+        if (p.y < 0 || p.y > ch) p.vy *= -1;
+        
+        ctx.fillStyle = 'rgba(100, 233, 238, 0.4)';
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+        
         for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < 120) {
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(0, 192, 255, ${1 - dist / 120})`;
-            ctx.lineWidth = 0.4;
-            ctx.stroke();
+          const p2 = particles[j];
+          const dx = p.x - p2.x; const dy = p.y - p2.y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 100) {
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y);
+            ctx.globalAlpha = 1 - (dist / 100); ctx.stroke(); ctx.globalAlpha = 1;
           }
         }
       }
       requestAnimationFrame(animate);
     }
-    animate();
+    window.addEventListener('resize', resize); resize(); animate();
+  })();
   </script>
 </body>
 </html>

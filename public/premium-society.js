@@ -2,231 +2,235 @@
 import { apiGet, apiPost } from './tm-api.js';
 
 const DOM = {
+  // Global
   btnBack: document.getElementById('btnBack'),
+  pageTitle: document.getElementById('pageTitle'),
+  
+  // Tabs
+  tabOverview: document.getElementById('tabOverview'),
+  tabApply: document.getElementById('tabApply'),
+  tabReview: document.getElementById('tabReview'),
+  tabLounge: document.getElementById('tabLounge'),
 
-  pillStatus: document.getElementById('pillStatus'),
-  pillPlan: document.getElementById('pillPlan'),
+  // Views
+  viewOverview: document.getElementById('viewOverview'),
+  viewApply: document.getElementById('viewApply'),
+  viewReview: document.getElementById('viewReview'),
+  viewLounge: document.getElementById('viewLounge'),
 
-  stateLoading: document.getElementById('stateLoading'),
-  stateLocked: document.getElementById('stateLocked'),
-  statePending: document.getElementById('statePending'),
-  stateApproved: document.getElementById('stateApproved'),
+  // Profile
+  btnProfileToggle: document.getElementById('btnProfileToggle'),
+  profileMenu: document.getElementById('profileMenu'),
 
-  btnApply: document.getElementById('btnApply'),
-  btnRefresh: document.getElementById('btnRefresh'),
-
-  dlg: document.getElementById('dlgPremiumApply'),
+  // Form Inputs
   frm: document.getElementById('frmPremiumApply'),
-  btnDlgClose: document.getElementById('btnDlgClose'),
-  btnCancelApply: document.getElementById('btnCancelApply'),
-  btnSubmitApply: document.getElementById('btnSubmitApply'),
-  applyError: document.getElementById('applyError'),
-
   fullName: document.getElementById('fullName'),
   age: document.getElementById('age'),
   occupation: document.getElementById('occupation'),
   finance: document.getElementById('finance'),
+  btnSubmitApply: document.getElementById('btnSubmitApply'),
+  applyError: document.getElementById('applyError'),
 
-  pendingStatus: document.getElementById('pendingStatus'),
-  pendingWhen: document.getElementById('pendingWhen'),
-
+  // Misc
+  btnRefresh: document.getElementById('btnRefresh'),
   txtConcierge: document.getElementById('txtConcierge'),
   btnSendConcierge: document.getElementById('btnSendConcierge'),
+  pendingWhen: document.getElementById('pendingWhen'),
+  btnHeroApply: document.getElementById('btnHeroApply'),
+  globalLoader: document.getElementById('globalLoader')
 };
 
-function showOnly(state) {
-  if (DOM.stateLoading) DOM.stateLoading.hidden = state !== 'loading';
-  if (DOM.stateLocked) DOM.stateLocked.hidden = state !== 'locked';
-  if (DOM.statePending) DOM.statePending.hidden = state !== 'pending';
-  if (DOM.stateApproved) DOM.stateApproved.hidden = state !== 'approved';
+// ---------------------------------------------------------
+// ANIMATION TRIGGER
+// ---------------------------------------------------------
+function triggerAnimations(container) {
+  const elements = container.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-down');
+  elements.forEach(el => {
+    el.classList.remove('is-visible'); 
+    void el.offsetWidth; // Force Reflow
+    el.classList.add('is-visible'); 
+  });
 }
 
-function setPills({ statusText, planText }) {
-  if (DOM.pillStatus) DOM.pillStatus.textContent = statusText ?? '—';
-  if (DOM.pillPlan) DOM.pillPlan.textContent = planText ?? 'Plan: —';
-}
+// ---------------------------------------------------------
+// 1. VIEW SWITCHING
+// ---------------------------------------------------------
 
-function normalizeStatus(val) {
-  return String(val || '').trim().toLowerCase();
-}
+window.switchView = function(viewName) {
+  // Hide all
+  DOM.viewOverview.hidden = true;
+  DOM.viewApply.hidden = true;
+  DOM.viewReview.hidden = true;
+  DOM.viewLounge.hidden = true;
+  if(DOM.globalLoader) DOM.globalLoader.hidden = true;
 
-function formatDateMaybe(val) {
-  try {
-    if (!val) return '—';
-    const d = new Date(val);
-    if (Number.isNaN(d.getTime())) return '—';
-    return d.toLocaleString();
-  } catch {
-    return '—';
+  // Deactivate Tabs
+  DOM.tabOverview.classList.remove('active');
+  DOM.tabApply.classList.remove('active');
+  DOM.tabReview.classList.remove('active');
+  DOM.tabLounge.classList.remove('active');
+
+  let activeView = null;
+
+  // Activate
+  switch(viewName) {
+    case 'overview':
+      DOM.viewOverview.hidden = false;
+      DOM.tabOverview.classList.add('active');
+      DOM.pageTitle.textContent = 'Overview';
+      activeView = DOM.viewOverview;
+      break;
+    case 'apply':
+      DOM.viewApply.hidden = false;
+      DOM.tabApply.classList.add('active');
+      DOM.pageTitle.textContent = 'Application';
+      activeView = DOM.viewApply;
+      break;
+    case 'review':
+      DOM.viewReview.hidden = false;
+      DOM.tabReview.classList.add('active');
+      DOM.pageTitle.textContent = 'Status Review';
+      activeView = DOM.viewReview;
+      break;
+    case 'lounge':
+      DOM.viewLounge.hidden = false;
+      DOM.tabLounge.classList.add('active');
+      DOM.pageTitle.textContent = 'The Lounge';
+      activeView = DOM.viewLounge;
+      break;
+  }
+
+  if(activeView) triggerAnimations(activeView);
+};
+
+// ---------------------------------------------------------
+// 2. UNLOCKED ACCESS LOGIC
+// ---------------------------------------------------------
+
+function setSidebarAccess(status) {
+  // Always unlocked for dev/design purposes as requested
+  DOM.tabApply.disabled = false;
+  DOM.tabReview.disabled = false;
+  DOM.tabLounge.disabled = false;
+
+  if (!window.hasSwitched) {
+    if (status === 'locked') {
+       switchView('overview');
+    } else if (status === 'pending') {
+       switchView('review');
+    } else if (status === 'approved') {
+       switchView('lounge');
+    }
+    window.hasSwitched = true;
   }
 }
 
-function openDialog() {
-  if (!DOM.dlg) return;
-  if (typeof DOM.dlg.showModal === 'function') DOM.dlg.showModal();
-  else DOM.dlg.setAttribute('open', 'open');
-  hideApplyError();
-}
+// ---------------------------------------------------------
+// 3. BACKEND INTEGRATION
+// ---------------------------------------------------------
 
-function closeDialog() {
-  if (!DOM.dlg) return;
-  if (typeof DOM.dlg.close === 'function') DOM.dlg.close();
-  else DOM.dlg.removeAttribute('open');
-  hideApplyError();
-}
-
-function showApplyError(msg) {
-  if (!DOM.applyError) return;
-  DOM.applyError.hidden = false;
-  DOM.applyError.textContent = msg || 'Something went wrong.';
-}
-
-function hideApplyError() {
-  if (!DOM.applyError) return;
-  DOM.applyError.hidden = true;
-  DOM.applyError.textContent = '';
-}
+function normalizeStatus(val) { return String(val || '').trim().toLowerCase(); }
 
 function computePremiumState(user) {
   const plan = normalizeStatus(user?.plan);
   const planActive = !!user?.planActive;
-
   const premiumStatus = normalizeStatus(user?.premiumStatus);
 
-  const approvedByPlan = plan === 'tier3' && planActive;
-  const approvedByStatus = premiumStatus === 'approved';
+  const approved = (plan === 'tier3' && planActive) || premiumStatus === 'approved';
   const pending = premiumStatus === 'pending';
 
-  return {
-    plan,
-    planActive,
-    premiumStatus,
-    approved: approvedByPlan || approvedByStatus,
-    pending
-  };
+  return { approved, pending };
 }
 
 async function refreshStatus() {
-  showOnly('loading');
-  setPills({ statusText: 'Checking status…', planText: 'Plan: —' });
+  if(DOM.globalLoader) DOM.globalLoader.hidden = false;
 
-  const res = await apiGet('/api/me');
+  try {
+    const res = await apiGet('/api/me');
+    if(DOM.globalLoader) DOM.globalLoader.hidden = true;
 
-  if (!res?.ok) {
-    setPills({ statusText: 'Not signed in', planText: 'Plan: —' });
-    showOnly('locked');
-    return;
-  }
+    if (!res?.ok) {
+      setSidebarAccess('locked');
+      return;
+    }
 
-  const user = res.user || {};
-  const s = computePremiumState(user);
+    const user = res.user || {};
+    const s = computePremiumState(user);
 
-  setPills({
-    statusText: s.approved ? 'Status: Approved' : s.pending ? 'Status: Pending' : 'Status: Not approved',
-    planText: `Plan: ${user.plan || 'free'}${user.planActive ? '' : ' (inactive)'}`
-  });
+    if (s.approved) {
+      setSidebarAccess('approved');
+    } else if (s.pending) {
+      if (DOM.pendingWhen) DOM.pendingWhen.textContent = new Date(user?.premiumApplication?.appliedAt || Date.now()).toLocaleDateString();
+      setSidebarAccess('pending');
+    } else {
+      setSidebarAccess('locked');
+    }
 
-  if (s.approved) {
-    showOnly('approved');
-  } else if (s.pending) {
-    if (DOM.pendingStatus) DOM.pendingStatus.textContent = 'Pending';
-    if (DOM.pendingWhen) DOM.pendingWhen.textContent = formatDateMaybe(user?.premiumApplication?.appliedAt);
-    showOnly('pending');
-  } else {
-    showOnly('locked');
+  } catch (err) {
+    console.error('API Error', err);
+    setSidebarAccess('locked');
+    if(DOM.globalLoader) DOM.globalLoader.hidden = true;
   }
 }
 
 async function submitApplication(e) {
   e.preventDefault();
-  hideApplyError();
+  DOM.applyError.hidden = true;
+  DOM.btnSubmitApply.disabled = true;
+  DOM.btnSubmitApply.textContent = 'Submitting...';
 
   const payload = {
-    fullName: DOM.fullName?.value?.trim(),
-    age: DOM.age?.value ? Number(DOM.age.value) : null,
-    occupation: DOM.occupation?.value?.trim(),
-    finance: DOM.finance?.value?.trim()
+    fullName: DOM.fullName.value,
+    age: Number(DOM.age.value),
+    occupation: DOM.occupation.value,
+    finance: DOM.finance.value
   };
-
-  if (!payload.fullName || !payload.age || !payload.occupation || !payload.finance) {
-    showApplyError('Please fill in all fields.');
-    return;
-  }
-  if (payload.age < 18 || payload.age > 99) {
-    showApplyError('Please enter a valid age (18–99).');
-    return;
-  }
-
-  if (DOM.btnSubmitApply) {
-    DOM.btnSubmitApply.disabled = true;
-    DOM.btnSubmitApply.textContent = 'Submitting…';
-  }
 
   try {
     const res = await apiPost('/api/me/premium/apply', payload);
+    if (!res?.ok) throw new Error(res.message || 'Error');
 
-    if (!res?.ok) {
-      showApplyError(res?.message || 'Failed to submit application. Please try again.');
-      return;
-    }
-
-    closeDialog();
     await refreshStatus();
+    switchView('review');
 
   } catch (err) {
-    console.error(err);
-    showApplyError('Network error. Please try again.');
+    DOM.applyError.hidden = false;
+    DOM.applyError.textContent = err.message || 'Failed to submit.';
   } finally {
-    if (DOM.btnSubmitApply) {
-      DOM.btnSubmitApply.disabled = false;
-      DOM.btnSubmitApply.textContent = 'Submit application';
-    }
+    DOM.btnSubmitApply.disabled = false;
+    DOM.btnSubmitApply.textContent = 'Submit Application';
+  }
+}
+
+// ---------------------------------------------------------
+// 4. INIT
+// ---------------------------------------------------------
+
+function setupProfileToggle() {
+  if (DOM.btnProfileToggle) {
+    DOM.btnProfileToggle.onclick = () => {
+      DOM.profileMenu.classList.toggle('show');
+      DOM.btnProfileToggle.querySelector('.chevron').classList.toggle('fa-rotate-180');
+    };
   }
 }
 
 function setupConciergeDraft() {
-  const key = 'tm_premium_concierge_draft';
-  if (!DOM.txtConcierge || !DOM.btnSendConcierge) return;
-
-  try {
-    const saved = localStorage.getItem(key);
-    if (saved) DOM.txtConcierge.value = saved;
-  } catch {}
-
-  DOM.btnSendConcierge.onclick = () => {
-    const text = (DOM.txtConcierge.value || '').trim();
-    if (!text) {
-      alert('Write a request first.');
-      return;
-    }
-    try { localStorage.setItem(key, text); } catch {}
-    alert('Saved. Next step: wire this to your messaging/concierge endpoint.');
-  };
-}
-
-function bindEvents() {
-  if (DOM.btnBack) DOM.btnBack.onclick = () => (window.location.href = 'dashboard.html');
-
-  if (DOM.btnApply) DOM.btnApply.onclick = openDialog;
-  if (DOM.btnRefresh) DOM.btnRefresh.onclick = refreshStatus;
-
-  if (DOM.btnDlgClose) DOM.btnDlgClose.onclick = closeDialog;
-  if (DOM.btnCancelApply) DOM.btnCancelApply.onclick = closeDialog;
-
-  if (DOM.frm) DOM.frm.addEventListener('submit', submitApplication);
-
-  if (DOM.dlg) {
-    DOM.dlg.addEventListener('cancel', (ev) => {
-      ev.preventDefault();
-      closeDialog();
-    });
+  const key = 'tm_concierge_draft';
+  if(DOM.btnSendConcierge) {
+    DOM.btnSendConcierge.onclick = () => {
+      if(DOM.txtConcierge?.value) localStorage.setItem(key, DOM.txtConcierge.value);
+      alert('Request sent to Concierge (Demo).');
+    };
   }
 }
 
-async function init() {
-  bindEvents();
+document.addEventListener('DOMContentLoaded', async () => {
+  if (DOM.btnBack) DOM.btnBack.onclick = () => window.location.href = 'dashboard.html';
+  if (DOM.btnRefresh) DOM.btnRefresh.onclick = refreshStatus;
+  if (DOM.frm) DOM.frm.addEventListener('submit', submitApplication);
+  
+  setupProfileToggle();
   setupConciergeDraft();
   await refreshStatus();
-}
-
-document.addEventListener('DOMContentLoaded', init);
+});
