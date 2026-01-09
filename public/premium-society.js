@@ -59,13 +59,19 @@ function triggerAnimations(container) {
   });
 }
 
+// ---------------------------------------------------------
+// 1. VIEW SWITCHING
+// ---------------------------------------------------------
+
 window.switchView = function(viewName) {
+  // Hide all
   DOM.viewOverview.hidden = true;
   DOM.viewApply.hidden = true;
   DOM.viewReview.hidden = true;
   DOM.viewLounge.hidden = true;
   if(DOM.globalLoader) DOM.globalLoader.hidden = true;
 
+  // Deactivate Tabs
   DOM.tabOverview.classList.remove('active');
   DOM.tabApply.classList.remove('active');
   DOM.tabReview.classList.remove('active');
@@ -105,8 +111,9 @@ window.switchView = function(viewName) {
 };
 
 // ---------------------------------------------------------
-// SIDEBAR STATUS LOGIC
+// 2. UNLOCKED ACCESS LOGIC (STRICT SECURITY RESTORED)
 // ---------------------------------------------------------
+
 function updateSidebarVisuals(status) {
   const setIcon = (el, iconClass) => { if(el) el.innerHTML = `<i class="${iconClass}"></i>`; };
 
@@ -115,12 +122,14 @@ function updateSidebarVisuals(status) {
     setIcon(DOM.iconReview, 'fa-solid fa-lock');
     setIcon(DOM.iconLounge, 'fa-solid fa-lock');
     if(DOM.sidebarRoleLabel) DOM.sidebarRoleLabel.textContent = "Guest";
-  } else if (status === 'pending') {
+  } 
+  else if (status === 'pending') {
     setIcon(DOM.iconApply, 'fa-solid fa-check');
     setIcon(DOM.iconReview, 'fa-solid fa-clock');
     setIcon(DOM.iconLounge, 'fa-solid fa-lock');
     if(DOM.sidebarRoleLabel) DOM.sidebarRoleLabel.textContent = "Pending";
-  } else if (status === 'approved') {
+  } 
+  else if (status === 'approved') {
     setIcon(DOM.iconApply, 'fa-solid fa-check');
     setIcon(DOM.iconReview, 'fa-solid fa-check');
     setIcon(DOM.iconLounge, 'fa-solid fa-crown');
@@ -131,47 +140,90 @@ function updateSidebarVisuals(status) {
 
 function setSidebarAccess(status) {
   updateSidebarVisuals(status);
-  DOM.tabApply.disabled = false;
-  DOM.tabReview.disabled = false;
-  DOM.tabLounge.disabled = false;
 
+  // --- STRICT SECURITY LOGIC ---
+  
+  // Reset: Disable protected areas by default
+  DOM.tabApply.disabled = false; 
+  DOM.tabReview.disabled = true; 
+  DOM.tabLounge.disabled = true;
+
+  // Visual Reset
+  DOM.tabReview.classList.remove('disabled-tab');
+  DOM.tabLounge.classList.remove('disabled-tab');
+
+  if (status === 'locked') {
+    // GUEST: Can Apply, Cannot access Status/Lounge
+    DOM.tabReview.classList.add('disabled-tab');
+    DOM.tabLounge.classList.add('disabled-tab');
+  } 
+  else if (status === 'pending') {
+    // PENDING: Cannot Apply again, Can see Review, Cannot see Lounge
+    DOM.tabApply.disabled = true; 
+    DOM.tabReview.disabled = false; 
+    DOM.tabLounge.disabled = true;
+    DOM.tabLounge.classList.add('disabled-tab');
+  } 
+  else if (status === 'approved') {
+    // MEMBER: Access Lounge!
+    DOM.tabApply.disabled = true; 
+    DOM.tabReview.disabled = true; 
+    DOM.tabLounge.disabled = false;
+  }
+
+  // Auto-Redirect Logic
   if (!window.hasSwitched) {
-    if (status === 'locked') switchView('overview');
-    else if (status === 'pending') switchView('review');
-    else if (status === 'approved') switchView('lounge');
+    if (status === 'locked') {
+       switchView('overview');
+    } else if (status === 'pending') {
+       switchView('review');
+    } else if (status === 'approved') {
+       switchView('lounge');
+    }
     window.hasSwitched = true;
   }
 }
 
 // ---------------------------------------------------------
-// BACKEND INTEGRATION
+// 3. BACKEND INTEGRATION
 // ---------------------------------------------------------
+
 function normalizeStatus(val) { return String(val || '').trim().toLowerCase(); }
 
 function computePremiumState(user) {
   const plan = normalizeStatus(user?.plan);
   const planActive = !!user?.planActive;
   const premiumStatus = normalizeStatus(user?.premiumStatus);
+
   const approved = (plan === 'tier3' && planActive) || premiumStatus === 'approved';
   const pending = premiumStatus === 'pending';
+
   return { approved, pending };
 }
 
 async function refreshStatus() {
   if(DOM.globalLoader) DOM.globalLoader.hidden = false;
+
   try {
     const res = await apiGet('/api/me');
     if(DOM.globalLoader) DOM.globalLoader.hidden = true;
-    if (!res?.ok) { setSidebarAccess('locked'); return; }
+
+    if (!res?.ok) {
+      setSidebarAccess('locked');
+      return;
+    }
 
     const user = res.user || {};
     const s = computePremiumState(user);
 
-    if (s.approved) setSidebarAccess('approved');
-    else if (s.pending) {
+    if (s.approved) {
+      setSidebarAccess('approved');
+    } else if (s.pending) {
       if (DOM.pendingWhen) DOM.pendingWhen.textContent = new Date(user?.premiumApplication?.appliedAt || Date.now()).toLocaleDateString();
       setSidebarAccess('pending');
-    } else setSidebarAccess('locked');
+    } else {
+      setSidebarAccess('locked');
+    }
 
   } catch (err) {
     console.error('API Error', err);
@@ -196,8 +248,10 @@ async function submitApplication(e) {
   try {
     const res = await apiPost('/api/me/premium/apply', payload);
     if (!res?.ok) throw new Error(res.message || 'Error');
+
     await refreshStatus();
     switchView('review');
+
   } catch (err) {
     DOM.applyError.hidden = false;
     DOM.applyError.textContent = err.message || 'Failed to submit.';
@@ -208,8 +262,9 @@ async function submitApplication(e) {
 }
 
 // ---------------------------------------------------------
-// CHAT FUNCTIONALITY
+// 4. CHAT FUNCTIONALITY
 // ---------------------------------------------------------
+
 function scrollToBottom() {
   if(DOM.chatBody) {
     DOM.chatBody.scrollTop = DOM.chatBody.scrollHeight;
@@ -225,8 +280,8 @@ function setupConciergeDraft() {
   if(txt) {
     txt.addEventListener("keydown", function(event) {
       if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault(); 
-        btn.click(); 
+        event.preventDefault(); // Prevent default new line
+        btn.click(); // Trigger send
       }
     });
   }
@@ -237,12 +292,13 @@ function setupConciergeDraft() {
       if(msg && msg.trim() !== "") {
         localStorage.setItem(key, msg);
         
+        // Add visual bubble
         const bubble = document.createElement('div');
         bubble.className = 'msg-row msg-outgoing';
-        // Use innerText for safety, wrap in bubble
+        
         const bubbleContent = document.createElement('div');
         bubbleContent.className = 'msg-bubble';
-        bubbleContent.innerText = msg;
+        bubbleContent.innerText = msg; // Safe text insertion
         
         const meta = document.createElement('div');
         meta.className = 'msg-meta';
@@ -256,7 +312,7 @@ function setupConciergeDraft() {
           setTimeout(() => scrollToBottom(), 50); 
         }
         
-        txt.value = ""; 
+        txt.value = ""; // Clear input
       }
     };
   }
@@ -272,7 +328,7 @@ function setupProfileToggle() {
 }
 
 // ---------------------------------------------------------
-// PERKS TOGGLE (NEW)
+// 5. PERKS TOGGLE LOGIC
 // ---------------------------------------------------------
 function setupPerksToggle() {
   const perks = document.querySelectorAll('.perk-pill, .perk-item');
@@ -290,6 +346,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   setupProfileToggle();
   setupConciergeDraft();
-  setupPerksToggle(); // Initialize perks logic
+  setupPerksToggle();
   await refreshStatus();
 });
