@@ -34,11 +34,6 @@ pnpm-debug.log*
 .env.local
 .env.*.local
 
-# Firebase / Google service accounts (VERY IMPORTANT)
-firebase-service-account.json
-*service-account*.json
-*serviceAccount*.json
-
 # =========================
 # OS / editor junk
 # =========================
@@ -53,3 +48,12 @@ Thumbs.db
 coverage/
 .nyc_output/
 backend/service_account.json
+
+# Firebase / Google service accounts
+backend/firebase-service-account.json
+backend/firebase_service_account.json
+backend/service_account.json
+backend/*service*account*.json
+service_account.json
+*.pem
+*.key
