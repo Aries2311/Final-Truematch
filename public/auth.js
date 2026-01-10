@@ -518,6 +518,10 @@
       try { tmShowLoader('Creating account…','Securing session'); } catch {}
       try {
         const payload = Object.fromEntries(fd.entries());
+        // Backend expects `name` for full name
+        payload.name = payload.name || payload.fullName || '';
+        try { delete payload.fullName; } catch (e) {}
+
         const out = await callAPI("/api/auth/register", payload);
         const ok = !!(out?.ok || out?.created || out?.status === 200 || out?.status === 201 || out?.demo);
 
