@@ -981,7 +981,26 @@ app.post('/api/auth/login', async (req, res) => {
         const planEnd = new Date(now.getTime() + rule.durationDays * DAY_MS).toISOString();
 
         if (hasFirebase) {
-          let userDoc = await findUserByEmail(emailNorm);
+          let userDoc;
+          try {
+            try {
+              userDoc = await findUserByEmail(emailNorm);
+            } catch (dbErr) {
+              console.error('login DB lookup failed:', dbErr);
+              return res.status(503).json({
+                ok: false,
+                message: 'Auth database unavailable. Please try again.'
+              });
+            }
+
+          } catch (dbErr) {
+            console.error('login DB lookup failed:', dbErr);
+            return res.status(503).json({
+              ok: false,
+              message: 'Auth database unavailable. Please try again.'
+            });
+          }
+
           const passwordHash = await bcrypt.hash(pass, 10);
 
           if (!userDoc) {
@@ -1115,7 +1134,25 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // ---------- Firebase mode ----------
-    let userDoc = await findUserByEmail(emailNorm);
+    let userDoc;
+    try {
+      try {
+        userDoc = await findUserByEmail(emailNorm);
+      } catch (dbErr) {
+        console.error('login DB lookup failed:', dbErr);
+        return res.status(503).json({
+          ok: false,
+          message: 'Auth database unavailable. Please try again.'
+        });
+      }
+
+    } catch (dbErr) {
+      console.error('login DB lookup failed:', dbErr);
+      return res.status(503).json({
+        ok: false,
+        message: 'Auth database unavailable. Please try again.'
+      });
+    }
 
     // SPECIAL DEMO ACCOUNT (auto-create if missing)
     if (!userDoc && emailNorm === DEMO_EMAIL && pass === DEMO_PASSWORD) {
@@ -1166,7 +1203,26 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ ok: false, message: 'invalid credentials' });
     }
 
-    const ok = await bcrypt.compare(pass, userDoc.passwordHash);
+    let ok = false;
+
+    try {
+
+      ok = await bcrypt.compare(pass, userDoc.passwordHash);
+
+    } catch (hashErr) {
+
+      console.error('login password hash compare failed:', hashErr);
+
+      return res.status(401).json({
+
+        ok: false,
+
+        message: 'Invalid email or password.'
+
+      });
+
+    }
+
     if (!ok) {
       clearSession(res);
       return res.status(401).json({ ok: false, message: 'invalid credentials' });
@@ -1325,6 +1381,27 @@ app.post('/api/me/preferences', async (req, res) => {
         lf = [lookingRaw.trim()];
       }
     }
+
+    lf = lf.map((v) => String(v).trim().toLowerCase()).filter(Boolean);
+
+
+    const allowedLF = new Set(['women', 'men']);
+
+
+    const badLF = lf.find((v) => !allowedLF.has(v));
+
+
+    if (badLF) {
+
+
+      return res.status(400).json({ ok: false, message: 'lookingFor must be women or men' });
+
+
+    }
+
+
+    
+
 
     if (!lf.length) {
       return res.status(400).json({ ok: false, message: 'lookingFor required' });
